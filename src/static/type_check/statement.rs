@@ -497,7 +497,7 @@ pub fn xs_tc_stmt(
         }
 
         let (ASTreeNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
-        else { unreachable!("XSC Internal Error while type checking For") };
+        else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
         /* Redefinitions are allowed for for loop variables */
 
@@ -744,8 +744,8 @@ pub fn xs_tc_stmt(
             return Ok(());
         };
 
-        let Some(return_value_type) = xs_tc_expr(path, spanned_expr, type_env)
-        else { unreachable!("XSC Internal Error while type checking Discarded") };
+        // an unknown identifier error will be issued by xs_tc_expr when needed
+        let return_value_type = xs_tc_expr(path, spanned_expr, type_env).unwrap_or(Type::Void);
 
         if let Type::Void = return_value_type {
             return Ok(());
@@ -831,7 +831,7 @@ pub fn xs_tc_stmt(
                 is_const,
                 is_static
             } = member_var
-            else { unreachable!("XSC Internal Error while type checking Class") };
+            else { unreachable!("XSC Internal Error while type checking Class {}", id_span) };
 
             if *is_extern {
                 type_env.add_err(path, XSError::syntax(
@@ -865,7 +865,10 @@ pub fn xs_tc_stmt(
             } else {
                 mem_name.push((id, id_span));
             }
-            let init_value = value.as_ref().expect("unreachable");
+            let init_value = match value.as_ref() {
+                Some(val) => val,
+                None => continue,
+            };
             let (_init_value_expr, init_value_span) = init_value;
 
             let Some(init_value_type) = xs_tc_expr(path, init_value, type_env) else {

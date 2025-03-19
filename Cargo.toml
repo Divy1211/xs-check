@@ -1,6 +1,6 @@
 [package]
 name = "xs-check"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Alian713"]
 edition = "2021"
 description = "A linter for AoE2:DE's flavour of XS"
