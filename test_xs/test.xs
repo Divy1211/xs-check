@@ -1,9 +1,7 @@
-void main() {
-    for(test = 1; < 5) {
-        int a = 10;
-    }
+bool xsTest() {
 
-    for(test = 2; < 5) {
-        int a = 20;
-    }
+}
+
+void main() {
+    xsTest();
 }

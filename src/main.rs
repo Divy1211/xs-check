@@ -42,8 +42,8 @@ fn main() {
         } else if filepath == &prelude_path {
             panic!("Prelude can't produce errors")
         }
-        has_errors = true;
-        print_xs_errs(filepath, errs, &ignores);
+        let new_errs = print_xs_errs(filepath, errs, &ignores);
+        has_errors = has_errors || new_errs;
     }
 
     if !has_errors {

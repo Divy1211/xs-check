@@ -7,7 +7,7 @@ use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
 use crate::lint::fmt::msg_fmt;
 use crate::r#static::info::{ParseError, XSError};
 
-pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>) {
+pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>) -> bool {
     let filename = &path.display().to_string();
     let src = &fs::read_to_string(&path).expect("Infallible: If we are here, the file was read previously");
     
@@ -16,10 +16,12 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
     let names = Color::Fixed(13);
     let types = Color::Fixed(14);
 
+    let mut found_errs = false;
     for error in errs.iter() {
         if ignores.contains(&error.code()) {
             continue;
         }
+        found_errs = true;
         let report = Report::build(error.report_kind(), filename, error.span().start)
             .with_code(error.code())
             .with_message(error.kind());
@@ -105,6 +107,7 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
             .print((filename, Source::from(src)))
             .unwrap();
     }
+    found_errs
 }
 
 pub fn print_parse_errs(path: &PathBuf, errs: &Vec<ParseError>) {
