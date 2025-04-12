@@ -9,12 +9,12 @@ pub mod lint;
 pub mod r#static;
 
 fn main() {
-    let (filepath, ignores) = match parse_args() {
+    let (filepath, ignores, extra_prelude_path, include_dirs) = match parse_args() {
         Some(filepath) => { filepath }
         None => { return; },
     };
-
-    let mut type_env= TypeEnv::new();
+    
+    let mut type_env= TypeEnv::new(include_dirs);
 
     let prelude_path = PathBuf::from(r"prelude.xs");
     let prelude = include_str!(r"./prelude.xs");
@@ -22,19 +22,12 @@ fn main() {
     gen_errs_from_src(&prelude_path, prelude, &mut type_env).expect("Prelude can't produce parse errors");
 
     let mut has_errors = false;
-    if let Err(errs) = gen_errs_from_path(&filepath, &mut type_env) {
-        has_errors = true;
-        for err in errs {
-            match err {
-                Error::FileErr(msg) => {
-                    println!("{}", msg);
-                }
-                Error::ParseErrs { path, errs } => {
-                    print_parse_errs(&path, &errs);
-                }
-            }
-        }
-    };
+    if let Some(extra_prelude_path) = extra_prelude_path {
+        let new_errs = check_file(&extra_prelude_path, &mut type_env);
+        has_errors = new_errs;
+    }
+    let new_errs = check_file(&filepath, &mut type_env);
+    has_errors =  has_errors || new_errs;
 
     for (filepath, errs) in type_env.errs() {
         if errs.len() == 0 {
@@ -53,4 +46,22 @@ fn main() {
         );
     }
     println!("Finished analysing file '{}'.", filepath.display());
+}
+
+fn check_file(filepath: &PathBuf, mut type_env: &mut TypeEnv) -> bool {
+    let mut has_errors = false;
+    if let Err(errs) = gen_errs_from_path(&filepath, &mut type_env) {
+        has_errors = true;
+        for err in errs {
+            match err {
+                Error::FileErr(msg) => {
+                    println!("{}", msg);
+                }
+                Error::ParseErrs { path, errs } => {
+                    print_parse_errs(&path, &errs);
+                }
+            }
+        }
+    }
+    has_errors
 }

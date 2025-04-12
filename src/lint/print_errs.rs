@@ -86,6 +86,13 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
                     }
                 }
             }
+            XSError::UnresolvedInclude { inc_filename, span } => {
+                report.with_label(
+                    Label::new((filename, span.start..span.end))
+                        .with_message(format!("Failed to resolve included file {}", inc_filename.fg(names)))
+                        .with_color(highlight)
+                )
+            }
             XSError::Syntax { span, msg, keywords } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))

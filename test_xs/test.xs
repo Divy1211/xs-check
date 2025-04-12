@@ -1,7 +1,5 @@
-bool xsTest() {
-
-}
+include "test2.xs";
 
 void main() {
-    xsTest();
+    test2();
 }

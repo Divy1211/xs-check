@@ -27,10 +27,32 @@ pub fn xs_tc_stmt(
             ));
             return Ok(());
         }
-        let mut inc_path = path.clone();
-        inc_path.pop();
-        inc_path.push(&filename[1..(filename.len()-1)]);
-        gen_errs_from_path(&inc_path, type_env)
+        
+        let include_dirs = type_env.include_dirs.clone();
+        
+        let mut result = None;
+        for inc_path in include_dirs.iter() {
+            let mut inc_path = inc_path.clone();
+            inc_path.push(&filename[1..(filename.len()-1)]);
+            if inc_path.is_file() {
+                result = Some(gen_errs_from_path(&inc_path, type_env));
+                break
+            }
+        }
+
+        let Some(result) = result else {
+            type_env.add_err(path, XSError::unresolved_include(
+                filename,
+                span,
+            ));
+            return Ok(())
+        };
+        result
+        // todo: relative imports are not a thing
+        // let mut inc_path = path.clone();
+        // inc_path.pop();
+        // inc_path.push(&filename[1..(filename.len()-1)]);
+        // gen_errs_from_path(&inc_path, type_env)
     }
     ASTreeNode::VarDef {
         is_extern,

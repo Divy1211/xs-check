@@ -16,6 +16,8 @@ pub enum XSError {
     UndefinedName { name: String, span: Span },
     RedefinedName { name: String, span: Span, og_src_loc: SrcLoc, note: Option<String> },
 
+    UnresolvedInclude { inc_filename: String, span: Span },
+    
     Syntax { span: Span, msg: String, keywords: Vec<String> },
 
     Warning { span: Span, msg: String, keywords: Vec<String>, kind: WarningKind },
@@ -23,16 +25,16 @@ pub enum XSError {
 
 #[derive(Debug, Clone)]
 pub enum WarningKind {
-    TopStrInit = 7,
-    DupCase = 8,
-    DiscardedFn = 9,
-    BreakPt = 10,
-    UnusableClasses = 11,
-    FirstOprArith = 12,
-    CmpSilentCrash = 13,
-    BoolCaseSilentCrash = 14,
-    NumDownCast = 15,
-    NoNumPromo = 16,
+    TopStrInit = 100,
+    DupCase = 101,
+    DiscardedFn = 102,
+    BreakPt = 103,
+    UnusableClasses = 104,
+    FirstOprArith = 105,
+    CmpSilentCrash = 106,
+    BoolCaseSilentCrash = 107,
+    NumDownCast = 108,
+    NoNumPromo = 109,
 }
 
 impl XSError {
@@ -86,6 +88,13 @@ impl XSError {
         }
     }
 
+    pub fn unresolved_include(inc_filename: &String, span: &Span) -> XSError {
+        XSError::UnresolvedInclude {
+            inc_filename: inc_filename.clone(),
+            span: span.clone(),
+        }
+    }
+    
     pub fn syntax(span: &Span, msg: &str, keywords: Vec<&str>) -> XSError {
         XSError::Syntax {
             span: span.clone(),
@@ -111,6 +120,7 @@ impl XSError {
             XSError::OpMismatch { span, .. } => { span }
             XSError::UndefinedName { span, .. } => { span }
             XSError::RedefinedName { span, .. } => { span }
+            XSError::UnresolvedInclude { span, .. } => { span }
             XSError::Syntax { span, .. } => { span }
             XSError::Warning { span, .. } => { span }
         }
@@ -133,6 +143,8 @@ impl XSError {
             XSError::UndefinedName { .. } => { "NameError" }
             XSError::RedefinedName { .. } => { "NameError" }
 
+            XSError::UnresolvedInclude { .. } => { "UnresolvedInclude" }
+            
             XSError::Syntax { .. } => { "SyntaxError" }
 
             XSError::Warning { kind: type_, .. } => { type_.as_str() }
@@ -147,7 +159,8 @@ impl XSError {
             XSError::OpMismatch { .. } => { 3 }
             XSError::UndefinedName { .. } => { 4 }
             XSError::RedefinedName { .. } => { 5 }
-            XSError::Syntax { .. } => { 6 }
+            XSError::UnresolvedInclude { .. } => { 6 }
+            XSError::Syntax { .. } => { 7 }
             XSError::Warning { kind, .. } => { kind.as_u32() }
         }
     }
