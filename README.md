@@ -1,6 +1,6 @@
-# XS Check
+# XS Check: A linter  for AoE2:DE's flavour of XS.
 
-A linter  for AoE2:DE's flavour of XS.
+<center> <img src="./imgs/xsc.png" height="500"> </center>
 
 ## Installation
 
