@@ -280,6 +280,14 @@ pub fn xs_tc_stmt(
         // nested fns aren't allowed in XS so this is fine because we
         // can't close over values
         
+        if params.len() > 12 {
+            type_env.add_err(path, XSError::syntax(
+                name_span,
+                "XS functions cannot have more than 12 parameters.",
+                vec![],
+            ));
+        }
+        
         for param in params {
             let (param_name, param_name_span) = &param.name;
             if let Some(IdInfo {type_: _type, src_loc: og_src_loc}) = type_env.get(param_name) {
