@@ -315,7 +315,7 @@ pub fn xs_tc_stmt(
             let (param_name, param_name_span) = &param.name;
             if let Some(IdInfo {type_: _type, src_loc: og_src_loc, ..}) = type_env.get(param_name) {
                 type_env.add_err(path, XSError::redefined_name(
-                    name,
+                    param_name,
                     param_name_span,
                     &og_src_loc,
                     None,
@@ -341,7 +341,7 @@ pub fn xs_tc_stmt(
                     gen_err = true;
                 }
             }
-            
+
             if gen_err {
                 type_env.add_err(path, XSError::syntax(
                     expr_span,

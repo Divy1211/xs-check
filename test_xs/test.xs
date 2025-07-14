@@ -1,7 +1,5 @@
-void main(int a = 10,) {
+int a = 10;
 
-}
+void main(int a = 10) {
 
-void test() {
-    main(10,);
 }
