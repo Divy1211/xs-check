@@ -1,5 +1,5 @@
-include "test2.xs";
+const int t = -1;
+int a = t;
+void main(int c = a) {
 
-void main() {
-    test2();
 }

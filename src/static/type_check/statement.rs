@@ -5,7 +5,7 @@ use chumsky::container::Container;
 use crate::lint::{gen_errs_from_path};
 use crate::parsing::ast::{ASTreeNode, RuleOpt, Expr, Identifier, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
-use crate::r#static::info::{Error, FnInfo, IdInfo, SrcLoc, TypeEnv, WarningKind, XSError};
+use crate::r#static::info::{Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XSError};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
 
@@ -73,7 +73,9 @@ pub fn xs_tc_stmt(
                 ))
             }
             None => {
-                type_env.set(name, IdInfo::from(type_, SrcLoc::from(path, name_span)));
+                type_env.set(name, IdInfo::from_with_mods(
+                    type_, SrcLoc::from(path, name_span), Modifiers::var(*is_static, *is_const, *is_extern)
+                ));
             }
         };
 
@@ -97,7 +99,8 @@ pub fn xs_tc_stmt(
 
         let (expr, expr_span) = spanned_expr;
 
-        if is_top_level || *is_const {
+        if is_top_level || *is_const || *is_static {
+            let mut gen_err = false;
             match expr {
                 Expr::Literal(Literal::Str(_)) if is_top_level => {
                     type_env.add_err(path, XSError::warning(
@@ -107,14 +110,26 @@ pub fn xs_tc_stmt(
                         WarningKind::TopStrInit,
                     ));
                 }
-                Expr::Literal(_) | Expr::Neg(_) | Expr::Vec { .. } => { }
-                _ => {
-                    type_env.add_err(path, XSError::syntax(
-                        expr_span,
-                        "Top level or {0} variable initializers must be literals",
-                        vec!["const"],
-                    ));
+                Expr::Literal(_) | Expr::Neg(_) | Expr::Vec { .. } => { },
+                Expr::Identifier(id) => {
+                    match type_env.get(id) {
+                        Some(IdInfo { modifiers, .. }) if !modifiers.is_const() => {
+                            gen_err = true;
+                        }
+                        _ => {}
+                    }
                 }
+                _ => {
+                    gen_err = true;
+                }
+            }
+
+            if gen_err {
+                type_env.add_err(path, XSError::syntax(
+                    expr_span,
+                    "Top level, {0}, or, {1} variable initializers must be literals or consts",
+                    vec!["const", "static"],
+                ));
             }
         }
 
@@ -124,7 +139,7 @@ pub fn xs_tc_stmt(
                 _ => {
                     type_env.add_err(path, XSError::syntax(
                         expr_span,
-                        "{0} variable initializers must be literals",
+                        "{0} variable initializers must be literals or consts",
                         vec!["static"],
                     ));
                 }
@@ -154,7 +169,7 @@ pub fn xs_tc_stmt(
 
         let (name, name_span) = spanned_name;
 
-        let Some(IdInfo { type_, .. }) = type_env.get(name) else {
+        let Some(IdInfo { type_, modifiers, .. }) = type_env.get(name) else {
             type_env.add_err(path, XSError::undefined_name(
                 name,
                 name_span,
@@ -162,13 +177,21 @@ pub fn xs_tc_stmt(
             return Ok(());
         };
 
+        if modifiers.is_const() {
+            type_env.add_err(path, XSError::syntax(
+                span,
+                "Cannot re-assign a value to a {0} variable",
+                vec!["const"],
+            ));
+        }
+
         let Some(init_type) = xs_tc_expr(path, spanned_expr, type_env) else {
             // An invalid expr will generate its own error
             return Ok(());
         };
 
         type_env.add_errs(path, type_cmp(&type_, &init_type, &spanned_expr.1, false, false));
-        
+
         Ok(())
     },
     ASTreeNode::RuleDef {
@@ -290,7 +313,7 @@ pub fn xs_tc_stmt(
         
         for param in params {
             let (param_name, param_name_span) = &param.name;
-            if let Some(IdInfo {type_: _type, src_loc: og_src_loc}) = type_env.get(param_name) {
+            if let Some(IdInfo {type_: _type, src_loc: og_src_loc, ..}) = type_env.get(param_name) {
                 type_env.add_err(path, XSError::redefined_name(
                     name,
                     param_name_span,
@@ -303,15 +326,28 @@ pub fn xs_tc_stmt(
 
             let (expr, expr_span) = &param.default;
 
+            let mut gen_err = false;
             match expr {
                 Expr::Literal(_)  | Expr::Neg(_) | Expr::Vec { .. } => { }
-                _ => {
-                    type_env.add_err(path, XSError::syntax(
-                        expr_span,
-                        "Parameter defaults must be literals",
-                        vec![],
-                    ));
+                Expr::Identifier(id) => {
+                    match type_env.get(id) {
+                        Some(IdInfo { modifiers, .. }) if !modifiers.is_const() => {
+                            gen_err = true;
+                        }
+                        _ => {}
+                    }
                 }
+                _ => {
+                    gen_err = true;
+                }
+            }
+            
+            if gen_err {
+                type_env.add_err(path, XSError::syntax(
+                    expr_span,
+                    "Parameter defaults must be literals or consts",
+                    vec![],
+                ));
             }
 
             // expr will generate its own error when it returns None
@@ -339,7 +375,7 @@ pub fn xs_tc_stmt(
             Some(IdInfo{ type_: Type::Func {
                 is_mutable: was_mutable,
                 type_sign
-            }, src_loc: og_src_loc }) => if !was_mutable {
+            }, src_loc: og_src_loc, .. }) => if !was_mutable {
                 type_env.add_err(path, XSError::redefined_name(
                     name,
                     name_span,
