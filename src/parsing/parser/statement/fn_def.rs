@@ -44,6 +44,7 @@ pub fn fn_def<'tokens>(
         .then(
             arg
                 .separated_by(just(Token::Comma))
+                .allow_trailing()
                 .collect::<Vec<Param>>()
                 .delimited_by(just(Token::LParen), just(Token::RParen))
         ).then(body(statement))

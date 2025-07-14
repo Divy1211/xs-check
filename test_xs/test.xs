@@ -1,5 +1,7 @@
-const int t = -1;
-int a = t;
-void main(int c = a) {
+void main(int a = 10,) {
 
+}
+
+void test() {
+    main(10,);
 }

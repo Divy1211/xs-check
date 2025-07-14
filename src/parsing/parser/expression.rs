@@ -36,6 +36,7 @@ pub fn expression<'tokens>() -> impl Parser<
             .then(
                 expr.clone()
                 .separated_by(just(Token::Comma))
+                .allow_trailing()
                 .collect::<Vec<Spanned<Expr>>>()
                 .delimited_by(just(Token::LParen), just(Token::RParen))
             ).map_with(|(name, args), info| {
