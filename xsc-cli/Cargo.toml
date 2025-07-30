@@ -1,0 +1,22 @@
+[package]
+name = "xsc-cli"
+version = "0.2.9"
+authors = ["Alian713"]
+edition = "2021"
+description = "A linter for AoE2:DE's flavour of XS"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+chrono = "0.4.38"
+
+[dependencies]
+ariadne = "0.4.1"
+chumsky = "=1.0.0-alpha.7"
+structopt = "0.3.26"
+xsc-core = { path = "../xsc-core" }
+
+[[bin]]
+name = "xs-check"
+path = "src/main.rs"
+bench = false
