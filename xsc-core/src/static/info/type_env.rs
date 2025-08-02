@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
-use std::rc::Rc;
+use std::sync::Arc;
 use chumsky::container::Container;
 
 use crate::parsing::ast::Identifier;
@@ -18,7 +18,7 @@ pub struct TypeEnv {
     
     pub current_fnv_env: Option<FnInfo>, // mmm...
     
-    pub include_dirs: Rc<Vec<PathBuf>>,
+    pub include_dirs: Arc<Vec<PathBuf>>,
 }
 
 impl TypeEnv {
@@ -33,7 +33,7 @@ impl TypeEnv {
             identifiers: HashMap::new(),
             fn_envs: HashMap::new(),
             errs: HashMap::new(),
-            include_dirs: Rc::new(include_dirs),
+            include_dirs: Arc::new(include_dirs),
             
             current_fnv_env: None,
         }

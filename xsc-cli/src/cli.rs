@@ -1,22 +1,9 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
 
+use xsc_core::utils::warnings_from_str;
+
 use structopt::StructOpt;
-
-use xsc_core::r#static::info::WarningKind;
-
-fn warnings_from_str(ignores: &str) -> Result<HashSet<u32>, &str> {
-    ignores
-        .split(|c| c == ',' || c == ' ')
-        .map(str::trim)
-        .filter(|str_| !str_.is_empty())
-        .map(|str_| {
-            match WarningKind::from_str(str_) {
-                None => { Err(str_) }
-                Some(kind) => { Ok(kind.as_u32()) }
-            }
-        }).collect()
-}
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "xs-check", about = env!("CARGO_PKG_DESCRIPTION"))]

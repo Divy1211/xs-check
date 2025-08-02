@@ -1,0 +1,28 @@
+[package]
+name = "xsc-lsp"
+version = "0.1.0"
+authors = ["Alian713"]
+edition = "2021"
+description = "An LSP for AoE2:DE's flavour of XS"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[build-dependencies]
+chrono = "0.4.38"
+
+[dependencies]
+tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-std"]}
+tower-lsp = "0.20.0"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+async-trait = "0.1.88"
+env_logger = "0.11.7"
+dashmap = "7.0.0-rc2"
+anyhow = "1.0.97"
+ropey = "1.6.1"
+xsc-core = { path = "../xsc-core" }
+
+[[bin]]
+name = "xs-check-lsp"
+path = "src/main.rs"
+bench = false

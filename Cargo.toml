@@ -2,6 +2,7 @@
 members = [
     "xsc-cli",
     "xsc-core",
+    "xsc-lsp",
 ]
 resolver = "2"
 

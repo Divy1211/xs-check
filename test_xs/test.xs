@@ -1,5 +1,4 @@
-const int a = 10;
-
 void main() {
-    a = 10;
+    int b = 10;
+    int a =
 }
