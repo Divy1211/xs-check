@@ -1,6 +1,7 @@
+use std::str::FromStr;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
-use tower_lsp::lsp_types::{DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializeResult, InitializedParams, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind};
+use tower_lsp::lsp_types::{DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializeResult, InitializedParams, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
 use ropey::Rope;
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::span_from_pos;
@@ -65,5 +66,8 @@ impl LanguageServer for Backend {
 
     async fn did_change_configuration(&self, _: DidChangeConfigurationParams) {
         self.build_prelude_env(true).await;
+        for entry in self.editors.iter() {
+            self.do_lint(Url::from_str(entry.key()).expect("Infallible")).await;
+        }
     }
 }
