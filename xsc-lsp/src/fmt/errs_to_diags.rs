@@ -7,11 +7,11 @@ use xsc_core::r#static::info::{Error, XSError};
 
 use crate::fmt::msg_fmt::msg_fmt;
 use crate::fmt::pos_info::pos_from_span;
-use crate::backend::backend::SourceInfo;
+use crate::backend::backend::RawSourceInfo;
 
 pub fn xs_errs_to_diags(
     errs: &HashMap<PathBuf, Vec<XSError>>,
-    editors: &SourceInfo,
+    editors: &RawSourceInfo,
     ignores: &HashSet<u32>
 ) -> Vec<Diagnostic> {
     let mut diags = Vec::with_capacity(errs.values().map(|v| v.len()).sum());
@@ -23,9 +23,7 @@ pub fn xs_errs_to_diags(
             }
             let mut severity = DiagnosticSeverity::ERROR;
 
-            let src = editors
-                .get(path.to_str().expect("Infallible"))
-                .expect("Infallible");
+            let (_uri, src) = &*editors.get(path).expect("Called after cache and do_lint");
 
             let (kind, msg, span) = match err {
                 XSError::ExtraArg { fn_name, span } => {
@@ -140,16 +138,14 @@ pub fn xs_errs_to_diags(
     diags
 }
 
-pub fn parse_errs_to_diags(errs: &Vec<Error>, editors: &SourceInfo) -> Vec<Diagnostic> {
+pub fn parse_errs_to_diags(errs: &Vec<Error>, editors: &RawSourceInfo) -> Vec<Diagnostic> {
     let mut diags = Vec::with_capacity(errs.len());
 
     for err in errs {
         match err {
             Error::FileErr(_) => { unreachable!("Internal Error Occurred") }
             Error::ParseErrs { path, errs, .. } => {
-                let src = editors
-                    .get(path.to_str().expect("Infallible"))
-                    .expect("Infallible");
+                let (_uri, src) = &*editors.get(path).expect("Infallible");
 
                 for err in errs {
                     let msg = err.msg();

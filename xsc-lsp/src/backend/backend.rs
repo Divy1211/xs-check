@@ -1,6 +1,5 @@
 use std::sync::{Arc, OnceLock};
 use std::path::PathBuf;
-use std::str::FromStr;
 
 use tower_lsp::Client;
 use tokio::sync::RwLock;
@@ -10,20 +9,23 @@ use tower_lsp::lsp_types::{
 };
 use ropey::Rope;
 use dashmap::DashMap;
-
+use xsc_core::parsing::ast::ASTreeNode;
 use xsc_core::r#static::info::{gen_errs_from_src, TypeEnv};
 
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
 use crate::fmt::errs_to_diags::{parse_errs_to_diags, xs_errs_to_diags};
+use crate::utils::path_from_uri;
 
-pub type SourceInfo = DashMap<String, Rope>;
+pub type RawSourceInfo = DashMap<PathBuf, (Url, Rope)>;
+pub type SourceInfo = DashMap<PathBuf, (Vec<ASTreeNode>, TypeEnv)>;
 
 pub struct Backend {
     client: Client,
     config: Arc<OnceLock<RwLock<ExtConfig>>>,
     prelude_env: Arc<OnceLock<RwLock<TypeEnv>>>,
-    pub editors: SourceInfo,
+    pub editors: RawSourceInfo,
+    pub env: SourceInfo,
 }
 
 impl Backend {
@@ -33,25 +35,26 @@ impl Backend {
             config: Arc::new(OnceLock::new()),
             prelude_env: Arc::new(OnceLock::new()),
             editors: DashMap::new(),
+            env: DashMap::new(),
         }
     }
     
     pub async fn do_lint(&self, uri: Url) {
         let config = self.config
             .get()
-            .expect("Infallible")
+            .expect("Initialized")
             .read()
             .await;
 
         let mut type_env = self.prelude_env
             .get()
-            .expect("Infallible")
+            .expect("Initialized")
             .read()
             .await
             .clone();
-
-        let path = PathBuf::from_str(uri.as_str()).expect("Infallible");
-        let src = &*self.editors.get(&uri.to_string()).expect("Infallible");
+        
+        let path = path_from_uri(&uri);
+        let (_uri, src) = &*self.editors.get(&path).expect("Cached before do_lint");
 
         let Err(errs) = gen_errs_from_src(&path, &src.to_string(), &mut type_env) else {
             let diags = xs_errs_to_diags(&type_env.errs, &self.editors, &config.ignores);
@@ -69,7 +72,7 @@ impl Backend {
         }
         match fetch_config(&self.client).await {
             Ok(config) if self.config.get().is_none() => {
-                self.config.set(RwLock::new(config)).expect("This fn runs once");
+                self.config.set(RwLock::new(config)).expect("Only runs once");
             }
             Ok(new_config) => {
                 let mut config = self.config.get().expect("Initialized").write().await;

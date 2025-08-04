@@ -53,7 +53,7 @@ pub fn xs_tc_expr(
             };
             type_env.add_errs(path, type_cmp(param_type, &arg_type, &arg_expr.1, true, false));
         }
-        if args.len() > type_sign.len() {
+        if args.len() >= type_sign.len() {
             for (_expr, span) in args[type_sign.len() - 1..].iter() {
                 type_env.add_err(path, XSError::extra_arg(
                     &name.0,

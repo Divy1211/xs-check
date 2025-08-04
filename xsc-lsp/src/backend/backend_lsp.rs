@@ -1,10 +1,35 @@
-use std::str::FromStr;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
-use tower_lsp::lsp_types::{DidChangeConfigurationParams, DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializeResult, InitializedParams, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
+use tower_lsp::lsp_types::{
+    DidChangeConfigurationParams,
+    DidChangeTextDocumentParams,
+    DidCloseTextDocumentParams,
+    DidOpenTextDocumentParams,
+    InitializeParams,
+    InitializeResult,
+    InitializedParams,
+    SemanticToken,
+    SemanticTokens,
+    SemanticTokensFullOptions,
+    SemanticTokensOptions,
+    SemanticTokensParams,
+    SemanticTokensResult,
+    SemanticTokensServerCapabilities,
+    ServerCapabilities,
+    ServerInfo,
+    TextDocumentSyncCapability,
+    TextDocumentSyncKind,
+};
+
 use ropey::Rope;
+
 use crate::backend::backend::Backend;
+use crate::backend::token_legend::get_semantic_token_legend;
+use crate::backend::token_legend::token_modifier::TokenModifier;
+use crate::backend::token_legend::token_type::TokenType;
 use crate::fmt::pos_info::span_from_pos;
+#[allow(unused_imports)]
+use crate::utils::{log, path_from_uri};
 
 #[async_trait]
 impl LanguageServer for Backend {
@@ -14,6 +39,12 @@ impl LanguageServer for Backend {
                 text_document_sync: Some(TextDocumentSyncCapability::Kind(
                     TextDocumentSyncKind::INCREMENTAL,
                 )),
+                semantic_tokens_provider: Some(SemanticTokensServerCapabilities::SemanticTokensOptions(SemanticTokensOptions {
+                    legend: get_semantic_token_legend(),
+                    full: Some(SemanticTokensFullOptions::Bool(true)),
+                    range: None,
+                    ..Default::default()
+                })),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -36,16 +67,19 @@ impl LanguageServer for Backend {
 
         self.build_prelude_env(false).await;
         let src = Rope::from(params.text_document.text);
-        self.editors.insert(uri.to_string(), src);
-
+        
+        let path = path_from_uri(&uri);
+        self.editors.insert(path, (uri.clone(), src));
         self.do_lint(uri).await;
     }
 
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
         let uri = params.text_document.uri.clone();
         
-        let mut src = self.editors.get_mut(&uri.to_string()).expect("Infallible");
+        let path = path_from_uri(&uri);
+        let mut val = self.editors.get_mut(&path).expect("Cached before did_change");
         
+        let (_uri, src) = &mut *val;
         for change in params.content_changes {
             match change.range {
                 None => { 
@@ -59,15 +93,58 @@ impl LanguageServer for Backend {
                 }
             }
         }
-
-        drop(src);
+        
+        drop(val);
         self.do_lint(uri).await;
+    }
+
+    async fn did_close(&self, params: DidCloseTextDocumentParams) {
+        let uri = params.text_document.uri;
+        let path = path_from_uri(&uri);
+        if uri.to_file_path().is_err() {
+            self.editors.remove(&path);
+        }
+    }
+
+    async fn semantic_tokens_full(&self, params: SemanticTokensParams) -> tower_lsp::jsonrpc::Result<Option<SemanticTokensResult>> {
+        let uri = params.text_document.uri;
+        let path = path_from_uri(&uri);
+        let (_uri, rope) = &*self.editors.get(&path).expect("Cached before semantic_tokens_full");
+
+        let mut data = Vec::new();
+        
+        for (line_idx, line) in rope.lines().enumerate() {
+            let line = match line.as_str() {
+                Some(line) => line,
+                None => &line.to_string()
+            };
+            let mut col = 0;
+            for word in line.split_whitespace() {
+                if word == "foo" {
+                    data.push(SemanticToken {
+                        delta_line: line_idx as u32,
+                        delta_start: col,
+                        length: word.len() as u32,
+                        token_type: TokenType::FUNCTION,
+                        token_modifiers_bitset: TokenModifier::NONE,
+                    });
+                }
+                col += (word.len() as u32) + 1;
+            }
+        }
+
+        Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
+            result_id: None,
+            data,
+        })))
     }
 
     async fn did_change_configuration(&self, _: DidChangeConfigurationParams) {
         self.build_prelude_env(true).await;
         for entry in self.editors.iter() {
-            self.do_lint(Url::from_str(entry.key()).expect("Infallible")).await;
+            let uri = entry.0.clone();
+            self.do_lint(uri).await;
         }
     }
 }
+
