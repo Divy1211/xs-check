@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 use std::fs;
-
+use blake3::Hash;
 use chumsky::input::Input;
 use chumsky::Parser;
 use crate::parsing::lexer::{lexer, Token};
@@ -9,6 +9,7 @@ use crate::parsing::ast::AstNode;
 use crate::parsing::span::Spanned;
 use crate::r#static::info::{Error, ParseError, TypeEnv};
 use crate::r#static::type_check::xs_tc;
+use crate::utils::is_unchanged;
 
 #[cfg(feature = "lsp")]
 pub type AstMap<K, V> = dashmap::DashMap<K, V>;
@@ -16,7 +17,7 @@ pub type AstMap<K, V> = dashmap::DashMap<K, V>;
 #[cfg(not(feature = "lsp"))]
 pub type AstMap<K, V> = std::collections::HashMap<K, V>;
 
-pub type AstCache = AstMap<PathBuf, Vec<Spanned<AstNode>>>;
+pub type AstCache = AstMap<PathBuf, (Hash, Vec<Spanned<AstNode>>)>;
 
 #[cfg(feature = "lsp")]
 pub type AstCacheRef<'a> = &'a AstCache;
@@ -49,8 +50,14 @@ pub fn gen_errs_from_src(
     let (tokens, errs) = lexer()
         .parse(src)
         .into_output_errors();
+    
+    let hash = blake3::hash(src.as_bytes());
+    if is_unchanged(ast_cache, path, hash) {
+        return Ok(());
+    }
 
     let Some(mut tokens) = tokens else {
+        ast_cache.insert(path.clone(), (hash, vec![]));
         return Err(vec![Error::parse_errs(
             path,
             errs.iter()
@@ -69,6 +76,7 @@ pub fn gen_errs_from_src(
         .into_output_errors();
 
     let Some((ast, _span)) = ast else {
+        ast_cache.insert(path.clone(), (hash, vec![]));
         return Err(vec![Error::parse_errs(
             path,
             errs.iter()
@@ -78,6 +86,6 @@ pub fn gen_errs_from_src(
     };
 
     let r = xs_tc(path, &ast, type_env, ast_cache);
-    ast_cache.insert(path.clone(), ast);
+    ast_cache.insert(path.clone(), (hash, ast));
     r
 }

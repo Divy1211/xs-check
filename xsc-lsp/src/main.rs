@@ -4,6 +4,7 @@ mod config;
 mod fmt;
 mod utils;
 mod backend;
+mod semantic_tokens;
 
 use backend::backend::Backend;
 

@@ -1,5 +1,5 @@
 use std::sync::{Arc, OnceLock};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tower_lsp::Client;
 use tokio::sync::RwLock;
 use tower_lsp::lsp_types::{
@@ -40,6 +40,11 @@ impl Backend {
         }
     }
     
+    pub fn remove_cached(&self, path: &Path) {
+        self.ast_cache.remove(path);
+        self.env_cache.remove(path);
+    }
+    
     pub async fn do_lint(&self, uri: Url) {
         let config = self.config
             .get()
@@ -59,10 +64,12 @@ impl Backend {
 
         let Err(errs) = gen_errs_from_src(&path, &src.to_string(), &mut type_env, &self.ast_cache) else {
             let diags = xs_errs_to_diags(&uri, &type_env.errs, &self.editors, &config.ignores);
+            self.env_cache.insert(path, type_env);
             self.client.publish_diagnostics(uri, diags, None).await;
             return;
         };
 
+        self.env_cache.insert(path, type_env);
         let diags = parse_errs_to_diags(&uri, &errs, &self.editors);
         self.client.publish_diagnostics(uri, diags, None).await;
     }

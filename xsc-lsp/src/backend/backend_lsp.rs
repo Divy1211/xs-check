@@ -8,7 +8,6 @@ use tower_lsp::lsp_types::{
     InitializeParams,
     InitializeResult,
     InitializedParams,
-    SemanticToken,
     SemanticTokens,
     SemanticTokensFullOptions,
     SemanticTokensOptions,
@@ -24,10 +23,8 @@ use tower_lsp::lsp_types::{
 use ropey::Rope;
 
 use crate::backend::backend::Backend;
-use crate::backend::token_legend::get_semantic_token_legend;
-use crate::backend::token_legend::token_modifier::TokenModifier;
-use crate::backend::token_legend::token_type::TokenType;
 use crate::fmt::pos_info::span_from_pos;
+use crate::semantic_tokens::{get_semantic_token_legend, gen_tokens};
 #[allow(unused_imports)]
 use crate::utils::{log, path_from_uri};
 
@@ -67,7 +64,7 @@ impl LanguageServer for Backend {
 
         self.build_prelude_env(false).await;
         let src = Rope::from(params.text_document.text);
-        
+
         let path = path_from_uri(&uri);
         self.editors.insert(path, (uri.clone(), src));
         self.do_lint(uri).await;
@@ -75,10 +72,10 @@ impl LanguageServer for Backend {
 
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
         let uri = params.text_document.uri.clone();
-        
+
         let path = path_from_uri(&uri);
         let mut val = self.editors.get_mut(&path).expect("Cached before did_change");
-        
+
         let (_uri, src) = &mut *val;
         for change in params.content_changes {
             match change.range {
@@ -93,8 +90,9 @@ impl LanguageServer for Backend {
                 }
             }
         }
-        
+
         drop(val);
+        self.remove_cached(&path);
         self.do_lint(uri).await;
     }
 
@@ -103,39 +101,19 @@ impl LanguageServer for Backend {
         let path = path_from_uri(&uri);
         if uri.to_file_path().is_err() {
             self.editors.remove(&path);
+            self.remove_cached(&path);
         }
     }
 
     async fn semantic_tokens_full(&self, params: SemanticTokensParams) -> tower_lsp::jsonrpc::Result<Option<SemanticTokensResult>> {
         let uri = params.text_document.uri;
         let path = path_from_uri(&uri);
-        let (_uri, rope) = &*self.editors.get(&path).expect("Cached before semantic_tokens_full");
-
-        let mut data = Vec::new();
-        
-        for (line_idx, line) in rope.lines().enumerate() {
-            let line = match line.as_str() {
-                Some(line) => line,
-                None => &line.to_string()
-            };
-            let mut col = 0;
-            for word in line.split_whitespace() {
-                if word == "foo" {
-                    data.push(SemanticToken {
-                        delta_line: line_idx as u32,
-                        delta_start: col,
-                        length: word.len() as u32,
-                        token_type: TokenType::FUNCTION,
-                        token_modifiers_bitset: TokenModifier::NONE,
-                    });
-                }
-                col += (word.len() as u32) + 1;
-            }
-        }
+        let (_uri, src) = &*self.editors.get(&path).expect("Cached before semantic_tokens_full");
+        let (_hash, ast) = &*self.ast_cache.get(&path).expect("Cached before semantic_tokens_full");
 
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
             result_id: None,
-            data,
+            data: gen_tokens(src, ast),
         })))
     }
 

@@ -9,4 +9,5 @@ lsp = ["dashmap"]
 [dependencies]
 ariadne = "0.4.1"
 chumsky = "=1.0.0-alpha.7"
+blake3 = "1.7.0"
 dashmap = { version = "7.0.0-rc2", optional = true }
