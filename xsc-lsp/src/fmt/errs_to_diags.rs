@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Range, Url};
 
-use xsc_core::r#static::info::{Error, XSError};
+use xsc_core::r#static::info::{Error, XsError};
 
 use crate::fmt::msg_fmt::msg_fmt;
 use crate::fmt::pos_info::pos_from_span;
@@ -11,7 +11,7 @@ use crate::backend::backend::RawSourceInfo;
 
 pub fn xs_errs_to_diags(
     uri: &Url,
-    errs: &HashMap<PathBuf, Vec<XSError>>,
+    errs: &HashMap<PathBuf, Vec<XsError>>,
     editors: &RawSourceInfo,
     ignores: &HashSet<u32>
 ) -> Vec<Diagnostic> {
@@ -29,14 +29,14 @@ pub fn xs_errs_to_diags(
 
             let mut severity = DiagnosticSeverity::ERROR;
             let (kind, msg, span) = match err {
-                XSError::ExtraArg { fn_name, span } => {
+                XsError::ExtraArg { fn_name, span } => {
                     (
                         "ExtraArg",
                         format!("Extra argument provided to function {}", fn_name),
                         span
                     )
                 }
-                XSError::TypeMismatch { actual, expected, span, note } => {
+                XsError::TypeMismatch { actual, expected, span, note } => {
                     let msg = match note {
                         None => {
                             format!("Expected type {} but found {}", expected, actual)
@@ -51,14 +51,14 @@ pub fn xs_errs_to_diags(
                         span
                     )
                 }
-                XSError::NotCallable { name, actual, span } => {
+                XsError::NotCallable { name, actual, span } => {
                     (
                         "NotCallable",
                         format!("The variable {} is of type {} and not a function", name, actual),
                         span
                     )
                 }
-                XSError::OpMismatch { op, type1, type2, span, note } => {
+                XsError::OpMismatch { op, type1, type2, span, note } => {
                     let msg = match note {
                         None => {
                             format!("Cannot {} types {} and {}", op, type1, type2)
@@ -73,14 +73,14 @@ pub fn xs_errs_to_diags(
                         span
                     )
                 }
-                XSError::UndefinedName { name, span } => {
+                XsError::UndefinedName { name, span } => {
                     (
                         "UndefinedName",
                         format!("Name {} is not defined", name),
                         span
                     )
                 }
-                XSError::RedefinedName { name, span, note, og_src_loc: _ } => {
+                XsError::RedefinedName { name, span, note, og_src_loc: _ } => {
                     let msg = match note {
                         None => {
                             format!("Name {} is already defined", name)
@@ -95,21 +95,21 @@ pub fn xs_errs_to_diags(
                         span
                     )
                 }
-                XSError::UnresolvedInclude { inc_filename, span } => {
+                XsError::UnresolvedInclude { inc_filename, span } => {
                     (
                         "UnresolvedInclude",
                         format!("Failed to resolve included file {}", inc_filename),
                         span
                     )
                 }
-                XSError::Syntax { span, msg, keywords } => {
+                XsError::Syntax { span, msg, keywords } => {
                     (
                         "Syntax",
                         msg_fmt(msg, keywords),
                         span
                     )
                 }
-                XSError::Warning { span, msg, keywords, kind } => {
+                XsError::Warning { span, msg, keywords, kind } => {
                     severity = DiagnosticSeverity::WARNING;
                     (
                         kind.as_str(),

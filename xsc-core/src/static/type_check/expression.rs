@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::parsing::ast::{Expr, Literal, Type};
 use crate::parsing::span::Spanned;
-use crate::r#static::info::{IdInfo, TypeEnv, XSError};
+use crate::r#static::info::{IdInfo, TypeEnv, XsError};
 use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_num_lit, type_cmp};
 
 pub fn xs_tc_expr(
@@ -21,7 +21,7 @@ pub fn xs_tc_expr(
     }
     Expr::Identifier(id) => {
         let Some(IdInfo { type_, ..}) = type_env.get(id) else {
-            type_env.add_err(path, XSError::undefined_name(id, span));
+            type_env.add_err(path, XsError::undefined_name(id, span));
             return None;
         };
         Some(type_)
@@ -35,11 +35,11 @@ pub fn xs_tc_expr(
     }
     Expr::FnCall { name: (name, name_span), args } => {
         let Some(IdInfo { type_, .. }) = type_env.get(name) else {
-            type_env.add_err(path, XSError::undefined_name(name, name_span));
+            type_env.add_err(path, XsError::undefined_name(name, name_span));
             return None;
         };
         let Type::Func { type_sign, .. } = type_ else {
-            type_env.add_err(path, XSError::not_callable(
+            type_env.add_err(path, XsError::not_callable(
                 name,
                 &type_.to_string(),
                 name_span,
@@ -55,7 +55,7 @@ pub fn xs_tc_expr(
         }
         if args.len() >= type_sign.len() {
             for (_expr, span) in args[type_sign.len() - 1..].iter() {
-                type_env.add_err(path, XSError::extra_arg(
+                type_env.add_err(path, XsError::extra_arg(
                     &name.0,
                     span,
                 ));
@@ -70,7 +70,7 @@ pub fn xs_tc_expr(
         type_env.add_errs(path, chk_num_lit(expr, true));
 
         if inner_span.start - span.start > 1 {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "Spaces are not allowed between unary negative ({0}) and {1} literals",
                 vec!["-", "int | float"]
@@ -80,7 +80,7 @@ pub fn xs_tc_expr(
         xs_tc_expr(path, expr, type_env)
     }
     Expr::Not(_) => {
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
             span,
             "Unary not ({0}) is not allowed in XS. yES",
             vec!["!"],

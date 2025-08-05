@@ -6,7 +6,7 @@ use chumsky::container::Container;
 use crate::parsing::ast::{Identifier};
 use crate::r#static::info::fn_info::FnInfo;
 use crate::r#static::info::id_info::IdInfo;
-use crate::r#static::info::xs_error::XSError;
+use crate::r#static::info::xs_error::XsError;
 
 #[derive(Debug, Clone)]
 pub struct TypeEnv {
@@ -14,7 +14,7 @@ pub struct TypeEnv {
     pub identifiers: HashMap<Identifier, IdInfo>,
     pub fn_envs: HashMap<Identifier, Vec<FnInfo>>,
     
-    pub errs: HashMap<PathBuf, Vec<XSError>>,
+    pub errs: HashMap<PathBuf, Vec<XsError>>,
     
     pub current_fnv_env: Option<FnInfo>, // mmm...
     
@@ -23,7 +23,7 @@ pub struct TypeEnv {
 
 impl TypeEnv {
     
-    pub fn errs(&self) -> &HashMap<PathBuf, Vec<XSError>> {
+    pub fn errs(&self) -> &HashMap<PathBuf, Vec<XsError>> {
         &self.errs
     }
     
@@ -67,14 +67,14 @@ impl TypeEnv {
         self.groups.insert(group.clone());
     }
 
-    pub fn add_err(&mut self, path: &PathBuf, err: XSError) {
+    pub fn add_err(&mut self, path: &PathBuf, err: XsError) {
         self.errs
             .entry(path.clone())
             .or_insert(vec![])
             .push(err);
     }
     
-    pub fn add_errs(&mut self, path: &PathBuf, errs: Vec<XSError>) {
+    pub fn add_errs(&mut self, path: &PathBuf, errs: Vec<XsError>) {
         self.errs
             .entry(path.clone())
             .or_insert(vec![])

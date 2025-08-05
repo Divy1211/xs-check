@@ -5,7 +5,7 @@ use chumsky::container::Container;
 
 use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
-use crate::r#static::info::{gen_errs_from_path, AstCacheRef, Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XSError};
+use crate::r#static::info::{gen_errs_from_path, AstCacheRef, Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XsError};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
 
@@ -21,7 +21,7 @@ pub fn xs_tc_stmt(
     // an include statement is always parsed with a string literal
     AstNode::Include((filename, _span)) => {
         if !is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "An {0} statement is only allowed at the top level",
                 vec!["include"],
@@ -42,7 +42,7 @@ pub fn xs_tc_stmt(
         }
 
         let Some(result) = result else {
-            type_env.add_err(path, XSError::unresolved_include(
+            type_env.add_err(path, XsError::unresolved_include(
                 filename,
                 span,
             ));
@@ -66,7 +66,7 @@ pub fn xs_tc_stmt(
         let (name, name_span) = spanned_name;
         match type_env.get(name) {
             Some(IdInfo { src_loc: og_src_loc, ..}) => {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
                     &og_src_loc,
@@ -81,7 +81,7 @@ pub fn xs_tc_stmt(
         };
 
         if !is_top_level && *is_extern {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 name_span,
                 "Local variables cannot be declared as {0}",
                 vec!["extern"],
@@ -89,7 +89,7 @@ pub fn xs_tc_stmt(
         }
         let Some(spanned_expr) = value else {
             if *is_const {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     name_span,
                     "Variable declared as {0} must be initialised with a value",
                     vec!["const"],
@@ -104,7 +104,7 @@ pub fn xs_tc_stmt(
             let mut gen_err = false;
             match expr {
                 Expr::Literal(Literal::Str(_)) if is_top_level => {
-                    type_env.add_err(path, XSError::warning(
+                    type_env.add_err(path, XsError::warning(
                         expr_span,
                         "Top level initialized {0} do not work correctly. yES",
                         vec!["string"],
@@ -126,7 +126,7 @@ pub fn xs_tc_stmt(
             }
 
             if gen_err {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     expr_span,
                     "Top level, {0}, or, {1} variable initializers must be literals or consts",
                     vec!["const", "static"],
@@ -138,7 +138,7 @@ pub fn xs_tc_stmt(
             match expr {
                 Expr::Literal(_) | Expr::Neg(_) | Expr::Vec { .. } => { }
                 _ => {
-                    type_env.add_err(path, XSError::syntax(
+                    type_env.add_err(path, XsError::syntax(
                         expr_span,
                         "{0} variable initializers must be literals or consts",
                         vec!["static"],
@@ -161,7 +161,7 @@ pub fn xs_tc_stmt(
         value: spanned_expr
     } => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "Assignments are only allowed in a local scope",
                 vec![],
@@ -171,7 +171,7 @@ pub fn xs_tc_stmt(
         let (name, name_span) = spanned_name;
 
         let Some(IdInfo { type_, modifiers, .. }) = type_env.get(name) else {
-            type_env.add_err(path, XSError::undefined_name(
+            type_env.add_err(path, XsError::undefined_name(
                 name,
                 name_span,
             ));
@@ -179,7 +179,7 @@ pub fn xs_tc_stmt(
         };
 
         if modifiers.is_const() {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "Cannot re-assign a value to a {0} variable",
                 vec!["const"],
@@ -201,7 +201,7 @@ pub fn xs_tc_stmt(
         body: (body, body_span)
     } => {
         if !is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 name_span,
                 "A rule definition is only allowed at the top level",
                 vec![],
@@ -241,7 +241,7 @@ pub fn xs_tc_stmt(
 
         match type_env.get(name) {
             Some(IdInfo { src_loc: og_src_loc, ..}) => {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
                     &og_src_loc,
@@ -288,7 +288,7 @@ pub fn xs_tc_stmt(
         body: (body, body_span)
     } => {
         if !is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 name_span,
                 "A function definition is only allowed at the top level",
                 vec![],
@@ -305,7 +305,7 @@ pub fn xs_tc_stmt(
         // can't close over values
         
         if params.len() > 12 {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 name_span,
                 "XS functions cannot have more than 12 parameters.",
                 vec![],
@@ -315,7 +315,7 @@ pub fn xs_tc_stmt(
         for param in params {
             let (param_name, param_name_span) = &param.name;
             if let Some(IdInfo {type_: _type, src_loc: og_src_loc, ..}) = type_env.get(param_name) {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     param_name,
                     param_name_span,
                     &og_src_loc,
@@ -344,7 +344,7 @@ pub fn xs_tc_stmt(
             }
 
             if gen_err {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     expr_span,
                     "Parameter defaults must be literals or consts",
                     vec![],
@@ -377,14 +377,14 @@ pub fn xs_tc_stmt(
                 is_mutable: was_mutable,
                 type_sign
             }, src_loc: og_src_loc, .. }) => if !was_mutable {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
                     &og_src_loc,
                     Some("Only mutable functions may be overridden"),
                 ))
             } else if new_type_sign != *type_sign {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
                     &og_src_loc,
@@ -397,7 +397,7 @@ pub fn xs_tc_stmt(
                 ))
             },
             Some(IdInfo { src_loc: og_src_loc, .. }) => {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
                     &og_src_loc,
@@ -432,7 +432,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::Return(spanned_expr) => {
         let Some(IdInfo { type_: return_type, .. }) = type_env.get_return() else {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside functions or rules",
                 vec!["return"],
@@ -442,7 +442,7 @@ pub fn xs_tc_stmt(
 
         let Some(spanned_expr) = spanned_expr else {
             if return_type != Type::Void {
-                type_env.add_err(path, XSError::type_mismatch(
+                type_env.add_err(path, XsError::type_mismatch(
                     "void",
                     &return_type.to_string(),
                     span,
@@ -452,7 +452,7 @@ pub fn xs_tc_stmt(
             return Ok(());
         };
         if return_type == Type::Void {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "This function's return type was declared as {0}",
                 vec!["void"]
@@ -462,7 +462,7 @@ pub fn xs_tc_stmt(
 
         let (expr, expr_span) = spanned_expr;
         if let Expr::Paren(_) = expr {} else {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 expr_span,
                 "A {0} statement's expression must be enclosed in parenthesis. yES",
                 vec!["return"]
@@ -484,7 +484,7 @@ pub fn xs_tc_stmt(
         alternate
     } => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "An {0} statement is only allowed in a local scope",
                 vec!["if"]
@@ -493,7 +493,7 @@ pub fn xs_tc_stmt(
 
         if let Some(type_) = xs_tc_expr(path, condition, type_env) {
             if type_ != Type::Bool {
-                type_env.add_err(path, XSError::type_mismatch(
+                type_env.add_err(path, XsError::type_mismatch(
                     &type_.to_string(),
                     "bool",
                     &condition.1,
@@ -527,7 +527,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::While { condition, body } => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed in a local scope",
                 vec!["while"]
@@ -536,7 +536,7 @@ pub fn xs_tc_stmt(
 
         if let Some(type_) = xs_tc_expr(path, condition, type_env) {
             if type_ != Type::Bool {
-                type_env.add_err(path, XSError::type_mismatch(
+                type_env.add_err(path, XsError::type_mismatch(
                     &type_.to_string(),
                     "bool",
                     &condition.1,
@@ -556,7 +556,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::For { var, condition, body } => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed in a local scope",
                 vec!["for"]
@@ -588,7 +588,7 @@ pub fn xs_tc_stmt(
         type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span)));
         if let Some(type_) = xs_tc_expr(path, condition, type_env) {
             if type_ != Type::Bool {
-                type_env.add_err(path, XSError::type_mismatch(
+                type_env.add_err(path, XsError::type_mismatch(
                     &type_.to_string(),
                     "bool",
                     &condition.1,
@@ -608,7 +608,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::Switch { clause, cases } => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed in a local scope",
                 vec!["switch"]
@@ -640,13 +640,13 @@ pub fn xs_tc_stmt(
                     default_span = Some(body_span);
                     continue;
                 };
-                type_env.add_err(path, XSError::warning(
+                type_env.add_err(path, XsError::warning(
                     og_span,
                     "Only the first default block will run when case matching fails",
                     vec![],
                     WarningKind::DupCase,
                 ));
-                type_env.add_err(path, XSError::warning(
+                type_env.add_err(path, XsError::warning(
                     body_span,
                     "Only the first default block will run when case matching fails",
                     vec![],
@@ -659,13 +659,13 @@ pub fn xs_tc_stmt(
                 type_env.add_errs(path, type_cmp(&Type::Int, &clause_type, case_expr_span, false, true));
             }
             if let Some(&og_span) = case_spans.get(case_expr) {
-                type_env.add_err(path, XSError::warning(
+                type_env.add_err(path, XsError::warning(
                     og_span,
                     "Only the first case will run on a match",
                     vec![],
                     WarningKind::DupCase,
                 ));
-                type_env.add_err(path, XSError::warning(
+                type_env.add_err(path, XsError::warning(
                     &spanned_case_expr.1,
                     "Only the first case will run on a match",
                     vec![],
@@ -680,7 +680,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::PostDPlus((id, id_span)) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A postfix increment ({0}) statement is only allowed in a local scope",
                 vec!["++"]
@@ -688,14 +688,14 @@ pub fn xs_tc_stmt(
         }
 
         let Some(IdInfo { type_: id_type, .. }) = type_env.get(id) else {
-            type_env.add_err(path, XSError::undefined_name(id, id_span));
+            type_env.add_err(path, XsError::undefined_name(id, id_span));
             return Ok(());
         };
 
         if let Type::Int | Type::Float = id_type {
             return Ok(());
         }
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
             span,
             "A postfix increment ({0}) statement is only allowed on {1} values",
             vec!["++", "int | float"]
@@ -705,7 +705,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::PostDMinus((id, id_span)) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A postfix decrement ({0}) statement is only allowed in a local scope",
                 vec!["--"]
@@ -713,14 +713,14 @@ pub fn xs_tc_stmt(
         }
 
         let Some(IdInfo { type_: id_type, .. }) = type_env.get(id) else {
-            type_env.add_err(path, XSError::undefined_name(id, id_span));
+            type_env.add_err(path, XsError::undefined_name(id, id_span));
             return Ok(());
         };
 
         if let Type::Int | Type::Float = id_type {
             return Ok(());
         }
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
             span,
             "A postfix decrement ({0}) statement is only allowed on {1} values",
             vec!["--", "int | float"]
@@ -730,7 +730,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::Break => {
         if !is_breakable {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside loops or switch cases",
                 vec!["return"],
@@ -741,7 +741,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::Continue => {
         if !is_continuable {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside loops",
                 vec!["continue"],
@@ -752,7 +752,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::LabelDef((id, id_span)) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} definition is only allowed inside a local scope",
                 vec!["label"],
@@ -761,7 +761,7 @@ pub fn xs_tc_stmt(
 
         match type_env.get(id) {
             Some(IdInfo { src_loc: og_src_loc, .. }) => {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     id,
                     id_span,
                     &og_src_loc,
@@ -777,14 +777,14 @@ pub fn xs_tc_stmt(
     },
     AstNode::Goto((id, id_span)) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside functions or rules",
                 vec!["goto"],
             ));
         }
         let Some(IdInfo { type_: id_type, .. }) = type_env.get(id) else {
-            type_env.add_err(path, XSError::undefined_name(id, id_span));
+            type_env.add_err(path, XsError::undefined_name(id, id_span));
             return Ok(());
         };
 
@@ -794,7 +794,7 @@ pub fn xs_tc_stmt(
     },
     AstNode::Discarded(spanned_expr) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A discarded expression is only allowed in a local scope",
                 vec![]
@@ -803,7 +803,7 @@ pub fn xs_tc_stmt(
 
         let (expr, expr_span) = spanned_expr;
         let Expr::FnCall { .. } = expr else {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 expr_span,
                 "Only function calls can be discarded",
                 vec![],
@@ -817,7 +817,7 @@ pub fn xs_tc_stmt(
         if let Type::Void = return_value_type {
             return Ok(());
         }
-        type_env.add_err(path, XSError::warning(
+        type_env.add_err(path, XsError::warning(
             expr_span,
             "The return value of this function call is being ignored",
             vec![],
@@ -828,14 +828,14 @@ pub fn xs_tc_stmt(
     },
     AstNode::Debug((id, id_span)) => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside functions or rules",
                 vec!["dbg"],
             ));
         }
         let Some(IdInfo { type_: id_type, .. }) = type_env.get(id) else {
-            type_env.add_err(path, XSError::undefined_name(id, id_span));
+            type_env.add_err(path, XsError::undefined_name(id, id_span));
             return Ok(());
         };
 
@@ -843,7 +843,7 @@ pub fn xs_tc_stmt(
             return Ok(());
         };
 
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
             id_span,
             "A {0} statement can only be given {1} values",
             vec!["dbg", "int | float | bool | string | vector"],
@@ -853,14 +853,14 @@ pub fn xs_tc_stmt(
     },
     AstNode::Breakpoint => {
         if is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} statement is only allowed inside a local scope",
                 vec!["breakpoint"],
             ));
         }
 
-        type_env.add_err(path, XSError::warning(
+        type_env.add_err(path, XsError::warning(
             span,
             "Breakpoints cause XS execution to pause irrecoverably",
             vec![],
@@ -871,14 +871,14 @@ pub fn xs_tc_stmt(
     },
     AstNode::Class { name: (id, id_span), member_vars } => {
         if !is_top_level {
-            type_env.add_err(path, XSError::syntax(
+            type_env.add_err(path, XsError::syntax(
                 span,
                 "A {0} definition is only allowed at the top level",
                 vec!["class"],
             ));
         }
         if let Some(IdInfo { src_loc: og_src_loc, .. }) = type_env.get(id) {
-            type_env.add_err(path, XSError::redefined_name(
+            type_env.add_err(path, XsError::redefined_name(
                 id,
                 id_span,
                 &og_src_loc,
@@ -901,21 +901,21 @@ pub fn xs_tc_stmt(
             else { unreachable!("XSC Internal Error while type checking Class {}", id_span) };
 
             if *is_extern {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     id_span,
                     "Member variables cannot be declared as {0}",
                     vec!["extern"],
                 ));
             }
             if *is_const {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     id_span,
                     "Member variables cannot be declared as {0}",
                     vec!["const"],
                 ));
             }
             if *is_static {
-                type_env.add_err(path, XSError::syntax(
+                type_env.add_err(path, XsError::syntax(
                     id_span,
                     "Member variables cannot be declared as {0}",
                     vec!["static"],
@@ -923,7 +923,7 @@ pub fn xs_tc_stmt(
             }
 
             if let Some(&og_span) = mem_name.get(id) {
-                type_env.add_err(path, XSError::redefined_name(
+                type_env.add_err(path, XsError::redefined_name(
                     id,
                     id_span,
                     &SrcLoc::from(path, og_span),
@@ -944,7 +944,7 @@ pub fn xs_tc_stmt(
             type_env.add_errs(path, type_cmp(type_, &init_value_type, init_value_span, false, false));
         }
 
-        type_env.add_err(path, XSError::warning(
+        type_env.add_err(path, XsError::warning(
             span,
             "Classes are unusable in XS",
             vec![],

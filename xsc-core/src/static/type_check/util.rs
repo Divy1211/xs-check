@@ -6,7 +6,7 @@ use chumsky::container::{Container};
 use crate::parsing::ast::{Expr, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
 use crate::r#static::type_check::expression::xs_tc_expr;
-use crate::r#static::info::{WarningKind, XSError, TypeEnv};
+use crate::r#static::info::{WarningKind, XsError, TypeEnv};
 
 pub fn combine_results<T>(results: impl IntoIterator<Item = Result<(), Vec<T>>>) -> Result<(), Vec<T>>  {
     let mut num_errs = 0;
@@ -29,9 +29,9 @@ pub fn combine_results<T>(results: impl IntoIterator<Item = Result<(), Vec<T>>>)
 }
 
 
-pub fn chk_int_lit(val: &i64, span: &Span) -> Vec<XSError> {
+pub fn chk_int_lit(val: &i64, span: &Span) -> Vec<XsError> {
     if *val < -999_999_999 || 999_999_999 < *val {
-        vec![XSError::syntax(
+        vec![XsError::syntax(
             span,
             "{0} literals cannot have more than 9 digits",
             vec!["int"]
@@ -41,10 +41,10 @@ pub fn chk_int_lit(val: &i64, span: &Span) -> Vec<XSError> {
     }
 }
 
-pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XSError> {
+pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XsError> {
     match expr {
         Expr::Neg(expr) => if is_neg {
-            vec![XSError::syntax(
+            vec![XsError::syntax(
                 span,
                 "Unary negative ({0}) is only allowed before {1} literals",
                 vec!["-", "int | float"]
@@ -56,7 +56,7 @@ pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XSError> {
             Literal::Int(val) => { chk_int_lit(val, span) }
             Literal::Float(_) => { vec![] }
             Literal::Bool(_) => {
-                vec![XSError::type_mismatch(
+                vec![XsError::type_mismatch(
                     "bool",
                     "int | float",
                     span,
@@ -64,7 +64,7 @@ pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XSError> {
                 )]
             }
             Literal::Str(_) => {
-                vec![XSError::type_mismatch(
+                vec![XsError::type_mismatch(
                     "string",
                     "int | float",
                     span,
@@ -73,7 +73,7 @@ pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XSError> {
             }
         }
         _ => {
-            vec![XSError::syntax(
+            vec![XsError::syntax(
                 span,
                 "Only {0} literals are allowed in vector initialization. You may use the {1} function instead",
                 vec!["int | float", "xsVectorSet"]
@@ -101,7 +101,7 @@ pub fn arith_op(
     match (type1, type2) {
         (Type::Int, Type::Int) => { Some(Type::Int) }
         (Type::Int, Type::Float) => {
-            type_env.add_err(path, XSError::warning(
+            type_env.add_err(path, XsError::warning(
                 span,
                 "This expression yields an {0}, not a {1}. The resulting type of an arithmetic operation depends on its first operand. yES",
                 vec!["int", "float"],
@@ -115,7 +115,7 @@ pub fn arith_op(
         (Type::Str, _) | (_, Type::Str) if op_name == "add" => { Some(Type::Str) }
 
         (type1, type2) => {
-            type_env.add_err(path, XSError::op_mismatch(
+            type_env.add_err(path, XsError::op_mismatch(
                 op_name,
                 &type1.to_string(),
                 &type2.to_string(),
@@ -148,7 +148,7 @@ pub fn reln_op(
         (Type::Str, Type::Str) => { Some(Type::Bool) }
         (Type::Vec, Type::Vec) | (Type::Bool, Type::Bool) => {
             if op_name != "eq" && op_name != "ne" {
-                type_env.add_err(path, XSError::warning(
+                type_env.add_err(path, XsError::warning(
                     span,
                     "This comparison will cause a silent XS crash",
                     vec![],
@@ -159,7 +159,7 @@ pub fn reln_op(
         }
 
         (type1, type2) => {
-            type_env.add_err(path, XSError::op_mismatch(
+            type_env.add_err(path, XsError::op_mismatch(
                 "compare",
                 &type1.to_string(),
                 &type2.to_string(),
@@ -190,7 +190,7 @@ pub fn logical_op(
     match (type1, type2) {
         (Type::Bool, Type::Bool) => { Some(Type::Bool) }
         (type1, type2) => {
-            type_env.add_err(path, XSError::op_mismatch(
+            type_env.add_err(path, XsError::op_mismatch(
                 op_name,
                 &type1.to_string(),
                 &type2.to_string(),
@@ -208,12 +208,12 @@ pub fn type_cmp(
     actual_span: &Span,
     is_fn_call: bool,
     is_case_expr: bool,
-) -> Vec<XSError> {
+) -> Vec<XsError> {
     let mut errs = vec![];
     match (expected, actual) {
         (_, _) if *expected == *actual => {},
         (Type::Int, Type::Bool) if is_case_expr => {
-            errs.push(XSError::warning(
+            errs.push(XsError::warning(
                 actual_span,
                 "Using booleans in a case's expression will cause a silent XS crash",
                 vec![],
@@ -222,7 +222,7 @@ pub fn type_cmp(
         }
         (Type::Int, Type::Bool) => {} // yES
         (Type::Int, Type::Float) => {
-            errs.push(XSError::warning(
+            errs.push(XsError::warning(
                 actual_span,
                 "Possible loss of precision due to downcast from a {0} to an {1}",
                 vec!["float", "int"],
@@ -230,7 +230,7 @@ pub fn type_cmp(
             ));
         }
         (Type::Float, Type::Int | Type::Bool) => if is_fn_call {
-            errs.push(XSError::warning(
+            errs.push(XsError::warning(
                 actual_span,
                 "Intermediate {0} or {1} values do not get promoted to {2} in a \
                 function call, floating point operations on this parameter will not work correctly. \
@@ -241,7 +241,7 @@ pub fn type_cmp(
             ));
         }
         _ => {
-            errs.push(XSError::type_mismatch(
+            errs.push(XsError::type_mismatch(
                 &actual.to_string(),
                 &expected.to_string(),
                 actual_span,
@@ -260,12 +260,12 @@ pub fn chk_rule_opt<'src>(
     type_env: &mut TypeEnv,
 ) -> bool {
     if let Some(&og_span) = opt_spans.get(opt_type) {
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
                 og_span,
                 "Cannot set {0} twice",
                 vec![opt_type]
         ));
-        type_env.add_err(path, XSError::syntax(
+        type_env.add_err(path, XsError::syntax(
                 opt_span,
                 "Cannot set {0} twice",
                 vec![opt_type]

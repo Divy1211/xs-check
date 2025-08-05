@@ -12,7 +12,7 @@ pub use fn_info::FnInfo;
 pub use id_info::IdInfo;
 pub use src_loc::SrcLoc;
 pub use type_env::TypeEnv;
-pub use xs_error::{WarningKind, XSError};
+pub use xs_error::{WarningKind, XsError};
 pub use error::Error;
 pub use parse_error::ParseError;
 pub use modifiers::Modifiers;

@@ -5,7 +5,7 @@ use crate::parsing::span::Span;
 use crate::r#static::info::src_loc::SrcLoc;
 
 #[derive(Debug, Clone)]
-pub enum XSError {
+pub enum XsError {
     // type errors
     ExtraArg { fn_name: String, span: Span },
     TypeMismatch { actual: String, expected: String, span: Span, note: Option<String> },
@@ -37,16 +37,16 @@ pub enum WarningKind {
     NoNumPromo = 109,
 }
 
-impl XSError {
-    pub fn extra_arg(fn_name: &str, span: &Span) -> XSError {
-        XSError::ExtraArg {
+impl XsError {
+    pub fn extra_arg(fn_name: &str, span: &Span) -> XsError {
+        XsError::ExtraArg {
             fn_name: String::from(fn_name),
             span: span.clone(),
         }
     }
 
-    pub fn type_mismatch(actual: &str, expected: &str, span: &Span, note: Option<&str>) -> XSError {
-        XSError::TypeMismatch {
+    pub fn type_mismatch(actual: &str, expected: &str, span: &Span, note: Option<&str>) -> XsError {
+        XsError::TypeMismatch {
             actual: String::from(actual),
             expected: String::from(expected),
             span: span.clone(),
@@ -54,16 +54,16 @@ impl XSError {
         }
     }
 
-    pub fn not_callable(name: &Identifier, actual: &str, span: &Span) -> XSError {
-        XSError::NotCallable {
+    pub fn not_callable(name: &Identifier, actual: &str, span: &Span) -> XsError {
+        XsError::NotCallable {
             name: String::from(&name.0),
             actual: String::from(actual),
             span: span.clone(),
         }
     }
 
-    pub fn op_mismatch(op: &str, type1: &str, type2: &str, span: &Span, note: Option<&str>) -> XSError {
-        XSError::OpMismatch {
+    pub fn op_mismatch(op: &str, type1: &str, type2: &str, span: &Span, note: Option<&str>) -> XsError {
+        XsError::OpMismatch {
             op: String::from(op),
             type1: String::from(type1),
             type2: String::from(type2),
@@ -72,15 +72,15 @@ impl XSError {
         }
     }
 
-    pub fn undefined_name(name: &Identifier, span: &Span) -> XSError {
-        XSError::UndefinedName {
+    pub fn undefined_name(name: &Identifier, span: &Span) -> XsError {
+        XsError::UndefinedName {
             name: String::from(&name.0),
             span: span.clone(),
         }
     }
 
-    pub fn redefined_name(name: &Identifier, span: &Span, og_src_loc: &SrcLoc, note: Option<&str>) -> XSError {
-        XSError::RedefinedName {
+    pub fn redefined_name(name: &Identifier, span: &Span, og_src_loc: &SrcLoc, note: Option<&str>) -> XsError {
+        XsError::RedefinedName {
             name: String::from(&name.0),
             span: span.clone(),
             og_src_loc: og_src_loc.clone(),
@@ -88,23 +88,23 @@ impl XSError {
         }
     }
 
-    pub fn unresolved_include(inc_filename: &String, span: &Span) -> XSError {
-        XSError::UnresolvedInclude {
+    pub fn unresolved_include(inc_filename: &String, span: &Span) -> XsError {
+        XsError::UnresolvedInclude {
             inc_filename: inc_filename.clone(),
             span: span.clone(),
         }
     }
     
-    pub fn syntax(span: &Span, msg: &str, keywords: Vec<&str>) -> XSError {
-        XSError::Syntax {
+    pub fn syntax(span: &Span, msg: &str, keywords: Vec<&str>) -> XsError {
+        XsError::Syntax {
             span: span.clone(),
             msg: String::from(msg),
             keywords: keywords.into_iter().map(String::from).collect(),
         }
     }
 
-    pub fn warning(span: &Span, msg: &str, keywords: Vec<&str>, kind: WarningKind) -> XSError {
-        XSError::Warning {
+    pub fn warning(span: &Span, msg: &str, keywords: Vec<&str>, kind: WarningKind) -> XsError {
+        XsError::Warning {
             span: span.clone(),
             msg: String::from(msg),
             keywords: keywords.into_iter().map(String::from).collect(),
@@ -114,54 +114,54 @@ impl XSError {
 
     pub fn span(&self) -> &Span {
         match self {
-            XSError::ExtraArg { span, .. } => { span }
-            XSError::TypeMismatch { span, .. } => { span }
-            XSError::NotCallable { span, .. } => { span }
-            XSError::OpMismatch { span, .. } => { span }
-            XSError::UndefinedName { span, .. } => { span }
-            XSError::RedefinedName { span, .. } => { span }
-            XSError::UnresolvedInclude { span, .. } => { span }
-            XSError::Syntax { span, .. } => { span }
-            XSError::Warning { span, .. } => { span }
+            XsError::ExtraArg { span, .. } => { span }
+            XsError::TypeMismatch { span, .. } => { span }
+            XsError::NotCallable { span, .. } => { span }
+            XsError::OpMismatch { span, .. } => { span }
+            XsError::UndefinedName { span, .. } => { span }
+            XsError::RedefinedName { span, .. } => { span }
+            XsError::UnresolvedInclude { span, .. } => { span }
+            XsError::Syntax { span, .. } => { span }
+            XsError::Warning { span, .. } => { span }
         }
     }
 
     pub fn report_kind(&self) -> ReportKind {
         match self {
-            XSError::Warning { .. } => { ReportKind::Warning }
+            XsError::Warning { .. } => { ReportKind::Warning }
             _ => { ReportKind::Error }
         }
     }
 
     pub fn kind(&self) -> &str {
         match self {
-            XSError::ExtraArg { .. } => { "TypeError" }
-            XSError::TypeMismatch { .. } => { "TypeError" }
-            XSError::NotCallable { .. } => { "TypeError" }
-            XSError::OpMismatch { .. } => { "TypeError" }
+            XsError::ExtraArg { .. } => { "TypeError" }
+            XsError::TypeMismatch { .. } => { "TypeError" }
+            XsError::NotCallable { .. } => { "TypeError" }
+            XsError::OpMismatch { .. } => { "TypeError" }
 
-            XSError::UndefinedName { .. } => { "NameError" }
-            XSError::RedefinedName { .. } => { "NameError" }
+            XsError::UndefinedName { .. } => { "NameError" }
+            XsError::RedefinedName { .. } => { "NameError" }
 
-            XSError::UnresolvedInclude { .. } => { "UnresolvedInclude" }
+            XsError::UnresolvedInclude { .. } => { "UnresolvedInclude" }
             
-            XSError::Syntax { .. } => { "SyntaxError" }
+            XsError::Syntax { .. } => { "SyntaxError" }
 
-            XSError::Warning { kind: type_, .. } => { type_.as_str() }
+            XsError::Warning { kind: type_, .. } => { type_.as_str() }
         }
     }
 
     pub fn code(&self) -> u32 {
         match self {
-            XSError::ExtraArg { .. } => { 0 }
-            XSError::TypeMismatch { .. } => { 1 }
-            XSError::NotCallable { .. } => { 2 }
-            XSError::OpMismatch { .. } => { 3 }
-            XSError::UndefinedName { .. } => { 4 }
-            XSError::RedefinedName { .. } => { 5 }
-            XSError::UnresolvedInclude { .. } => { 6 }
-            XSError::Syntax { .. } => { 7 }
-            XSError::Warning { kind, .. } => { kind.as_u32() }
+            XsError::ExtraArg { .. } => { 0 }
+            XsError::TypeMismatch { .. } => { 1 }
+            XsError::NotCallable { .. } => { 2 }
+            XsError::OpMismatch { .. } => { 3 }
+            XsError::UndefinedName { .. } => { 4 }
+            XsError::RedefinedName { .. } => { 5 }
+            XsError::UnresolvedInclude { .. } => { 6 }
+            XsError::Syntax { .. } => { 7 }
+            XsError::Warning { kind, .. } => { kind.as_u32() }
         }
     }
 }

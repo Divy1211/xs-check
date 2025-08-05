@@ -5,9 +5,9 @@ use std::path::PathBuf;
 use ariadne::{Color, Fmt, Label, Report, ReportKind, Source};
 
 use crate::fmt::msg_fmt::msg_fmt;
-use xsc_core::r#static::info::{ParseError, XSError};
+use xsc_core::r#static::info::{ParseError, XsError};
 
-pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>) -> bool {
+pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XsError>, ignores: &HashSet<u32>) -> bool {
     let filename = &path.display().to_string();
     let src = &fs::read_to_string(&path).expect("Infallible: If we are here, the file was read previously");
     
@@ -26,14 +26,14 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
             .with_code(error.code())
             .with_message(error.kind());
         let report = match error {
-            XSError::ExtraArg { fn_name, span } => {
+            XsError::ExtraArg { fn_name, span } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Extra argument provided to function {}", fn_name.fg(names)))
                         .with_color(highlight)
                 )
             }
-            XSError::TypeMismatch { actual, expected, span, note } => {
+            XsError::TypeMismatch { actual, expected, span, note } => {
                 let report = report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Expected type {} but found {}", expected.fg(types), actual.fg(types)))
@@ -46,14 +46,14 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
                     }
                 }
             }
-            XSError::NotCallable { name, actual, span } => {
+            XsError::NotCallable { name, actual, span } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("The variable {} is of type {} and not a function", name.fg(names), actual.fg(types)))
                         .with_color(highlight)
                 )
             }
-            XSError::OpMismatch { op, type1, type2, span, note } => {
+            XsError::OpMismatch { op, type1, type2, span, note } => {
                 let report = report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Cannot {} types {} and {}", op, type1.fg(types), type2.fg(types)))
@@ -66,14 +66,14 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
                     }
                 }
             }
-            XSError::UndefinedName { name, span } => {
+            XsError::UndefinedName { name, span } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Name {} is not defined", name.fg(names)))
                         .with_color(highlight)
                 )
             }
-            XSError::RedefinedName { name, span, note, .. } => {
+            XsError::RedefinedName { name, span, note, .. } => {
                 let report = report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Name {} is already defined", name.fg(names)))
@@ -86,14 +86,14 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
                     }
                 }
             }
-            XSError::UnresolvedInclude { inc_filename, span } => {
+            XsError::UnresolvedInclude { inc_filename, span } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(format!("Failed to resolve included file {}", inc_filename.fg(names)))
                         .with_color(highlight)
                 )
             }
-            XSError::Syntax { span, msg, keywords } => {
+            XsError::Syntax { span, msg, keywords } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(msg_fmt(msg, keywords, &kwds))
@@ -101,7 +101,7 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XSError>, ignores: &HashSet<u32>
                 )
             }
 
-            XSError::Warning { span, msg, keywords, .. } => {
+            XsError::Warning { span, msg, keywords, .. } => {
                 report.with_label(
                     Label::new((filename, span.start..span.end))
                         .with_message(msg_fmt(msg, keywords, &types))
