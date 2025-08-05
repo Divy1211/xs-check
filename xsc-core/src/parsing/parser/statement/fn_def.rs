@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::{ASTreeNode, Param, Type};
+use crate::parsing::ast::{AstNode, Param, Type};
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::expression::expression;
 use crate::parsing::parser::parser_input::ParserInput;
@@ -11,13 +11,13 @@ pub fn fn_def<'tokens>(
     statement: impl Parser<
         'tokens,
         ParserInput<'tokens>,
-        Spanned<ASTreeNode>,
+        Spanned<AstNode>,
         extra::Err<Rich<'tokens, Token, Span>>,
     > + Clone
 ) -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     let arg = one_of([
@@ -52,7 +52,7 @@ pub fn fn_def<'tokens>(
             ((((mutable, return_type), name), params), body),
              info
         | (
-            ASTreeNode::FnDef {
+            AstNode::FnDef {
                 is_mutable: mutable.is_some(),
                 return_type: Type::from_tok(return_type),
                 name,

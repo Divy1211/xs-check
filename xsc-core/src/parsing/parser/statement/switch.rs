@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::{ASTreeNode, Body, Expr};
+use crate::parsing::ast::{AstNode, Body, Expr};
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::expression::expression;
 use crate::parsing::parser::parser_input::ParserInput;
@@ -11,13 +11,13 @@ pub fn switch<'tokens>(
     statement: impl Parser<
         'tokens,
         ParserInput<'tokens>,
-        Spanned<ASTreeNode>,
+        Spanned<AstNode>,
         extra::Err<Rich<'tokens, Token, Span>>,
     > + Clone
 ) -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     let case = just(Token::Case)
@@ -38,6 +38,6 @@ pub fn switch<'tokens>(
                 .collect::<Vec<(Option<Spanned<Expr>>, Spanned<Body>)>>()
                 .delimited_by(just(Token::LBrace), just(Token::RBrace))
         ).map_with(|(clause, cases), info| (
-        ASTreeNode::Switch { clause, cases }, info.span())
+        AstNode::Switch { clause, cases }, info.span())
     )
 }

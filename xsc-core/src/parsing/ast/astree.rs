@@ -4,7 +4,7 @@ use crate::parsing::ast::param::Param;
 use crate::parsing::ast::type_::Type;
 use crate::parsing::span::Spanned;
 
-pub type Body = Vec<Spanned<ASTreeNode>>;
+pub type Body = Vec<Spanned<AstNode>>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum RuleOpt {
@@ -19,7 +19,7 @@ pub enum RuleOpt {
 }
 
 #[derive(Debug, Clone)]
-pub enum ASTreeNode {
+pub enum AstNode {
     Include(Spanned<String>),
     VarDef {
         is_extern: bool,              // no extern inside locals
@@ -56,7 +56,7 @@ pub enum ASTreeNode {
         body: Spanned<Body>,
     },
     For {
-        var: Box<Spanned<ASTreeNode>>, // always VarAssign
+        var: Box<Spanned<AstNode>>, // always VarAssign
         condition: Spanned<Expr>,
         body: Spanned<Body>,
     },
@@ -77,6 +77,6 @@ pub enum ASTreeNode {
     Breakpoint,
     Class {
         name: Spanned<Identifier>,
-        member_vars: Vec<Spanned<ASTreeNode>>, // always VarDef, no static/const/externs allowed
+        member_vars: Vec<Spanned<AstNode>>, // always VarDef, no static/const/externs allowed
     },
 }

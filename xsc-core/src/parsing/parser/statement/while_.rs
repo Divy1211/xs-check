@@ -1,5 +1,5 @@
 use chumsky::prelude::*;
-use crate::parsing::ast::ASTreeNode;
+use crate::parsing::ast::AstNode;
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::expression::expression;
 use crate::parsing::parser::parser_input::ParserInput;
@@ -10,13 +10,13 @@ pub fn while_<'tokens>(
     statement: impl Parser<
         'tokens,
         ParserInput<'tokens>,
-        Spanned<ASTreeNode>,
+        Spanned<AstNode>,
         extra::Err<Rich<'tokens, Token, Span>>,
     > + Clone
 ) -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     just(Token::While)
@@ -26,6 +26,6 @@ pub fn while_<'tokens>(
             (condition, body),
             info
         | {
-            (ASTreeNode::While { condition, body }, info.span())
+            (AstNode::While { condition, body }, info.span())
         })
 }

@@ -17,7 +17,7 @@ mod class_def;
 
 use chumsky::prelude::*;
 
-use crate::parsing::ast::ASTreeNode;
+use crate::parsing::ast::AstNode;
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::parser_input::ParserInput;
 use fn_def::fn_def;
@@ -40,7 +40,7 @@ use crate::parsing::span::{Span, Spanned};
 pub fn statement<'tokens>() -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     recursive(|statement| {

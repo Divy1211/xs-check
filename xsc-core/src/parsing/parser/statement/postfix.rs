@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::ASTreeNode;
+use crate::parsing::ast::AstNode;
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::parser_input::ParserInput;
 use crate::parsing::span::{Span, Spanned};
@@ -8,7 +8,7 @@ use crate::parsing::span::{Span, Spanned};
 pub fn postfix<'tokens>() -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     select! { Token::Identifier(id) => id }
@@ -16,7 +16,7 @@ pub fn postfix<'tokens>() -> impl Parser<
         .then(one_of([Token::DMinus, Token::DPlus]))
         .then_ignore(just(Token::SColon))
         .map_with(|(name, tok), info| (match tok {
-            Token::DMinus => ASTreeNode::PostDMinus(name),
-            _             => ASTreeNode::PostDPlus(name),
+            Token::DMinus => AstNode::PostDMinus(name),
+            _             => AstNode::PostDPlus(name),
         }, info.span()))
 }

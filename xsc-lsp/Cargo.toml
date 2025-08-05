@@ -20,7 +20,7 @@ env_logger = "0.11.7"
 dashmap = "7.0.0-rc2"
 anyhow = "1.0.97"
 ropey = "1.6.1"
-xsc-core = { path = "../xsc-core" }
+xsc-core = { path = "../xsc-core", features = ["lsp"] }
 
 [[bin]]
 name = "xs-check-lsp"

@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::{ASTreeNode, Expr, Identifier};
+use crate::parsing::ast::{AstNode, Expr, Identifier};
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::expression::expression;
 use crate::parsing::parser::parser_input::ParserInput;
@@ -12,13 +12,13 @@ pub fn for_<'tokens>(
     statement: impl Parser<
         'tokens,
         ParserInput<'tokens>,
-        Spanned<ASTreeNode>,
+        Spanned<AstNode>,
         extra::Err<Rich<'tokens, Token, Span>>,
     > + Clone
 ) -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     // XS for loop syntax is absolutely ugly:
@@ -40,7 +40,7 @@ pub fn for_<'tokens>(
         | {
             let (var, _span) = var_operand1.clone();
             let (op1, op1_span) = match var {
-                ASTreeNode::VarAssign { name, .. } => name,
+                AstNode::VarAssign { name, .. } => name,
                 _ => (Identifier::new("ForUnreachable"), SimpleSpan::new(0, 0)),
             };
 
@@ -53,6 +53,6 @@ pub fn for_<'tokens>(
                 _         => Expr::Gt(Box::new(spanned_expr), Box::new(operand2)),
             }, SimpleSpan::new(op1_span.start, op2_span.end));
 
-            (ASTreeNode::For { var: Box::new(var_operand1), condition, body }, info.span())
+            (AstNode::For { var: Box::new(var_operand1), condition, body }, info.span())
         })
 }

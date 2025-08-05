@@ -16,4 +16,4 @@ pub use xs_error::{WarningKind, XSError};
 pub use error::Error;
 pub use parse_error::ParseError;
 pub use modifiers::Modifiers;
-pub use gen_errs::{gen_errs_from_path, gen_errs_from_src};
+pub use gen_errs::{gen_errs_from_path, gen_errs_from_src, AstCache, AstMap, AstCacheRef};

@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::{ASTreeNode, RuleOpt, Identifier, Literal};
+use crate::parsing::ast::{AstNode, RuleOpt, Identifier, Literal};
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::parser_input::ParserInput;
 use crate::parsing::parser::statement::body::body;
@@ -10,13 +10,13 @@ pub fn rule_def<'tokens>(
     statement: impl Parser<
         'tokens,
         ParserInput<'tokens>,
-        Spanned<ASTreeNode>,
+        Spanned<AstNode>,
         extra::Err<Rich<'tokens, Token, Span>>,
     > + Clone
 ) -> impl Parser<
     'tokens,
     ParserInput<'tokens>,
-    Spanned<ASTreeNode>,
+    Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
     let no_args = one_of([
@@ -57,7 +57,7 @@ pub fn rule_def<'tokens>(
             ((name, rule_opts), body),
              info
         | (
-            ASTreeNode::RuleDef {
+            AstNode::RuleDef {
                 name,
                 rule_opts,
                 body,

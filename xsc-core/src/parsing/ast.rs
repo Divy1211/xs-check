@@ -8,7 +8,7 @@ mod param;
 
 pub use expr::Expr;
 pub use literal::Literal;
-pub use astree::{ASTreeNode, RuleOpt, Body};
+pub use astree::{AstNode, RuleOpt, Body};
 pub use type_::Type;
 pub use identifier::Identifier;
 pub use comment::Comment;

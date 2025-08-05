@@ -3,6 +3,10 @@ name = "xsc-core"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+lsp = ["dashmap"]
+
 [dependencies]
 ariadne = "0.4.1"
 chumsky = "=1.0.0-alpha.7"
+dashmap = { version = "7.0.0-rc2", optional = true }

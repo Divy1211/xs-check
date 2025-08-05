@@ -3,22 +3,23 @@ use std::path::PathBuf;
 
 use chumsky::container::Container;
 
-use crate::parsing::ast::{ASTreeNode, RuleOpt, Expr, Identifier, Literal, Type};
+use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
-use crate::r#static::info::{gen_errs_from_path, Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XSError};
+use crate::r#static::info::{gen_errs_from_path, AstCacheRef, Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XSError};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
 
 pub fn xs_tc_stmt(
     path: &PathBuf,
-    (stmt, span): &Spanned<ASTreeNode>,
+    (stmt, span): &Spanned<AstNode>,
     type_env: &mut TypeEnv,
+    ast_cache: AstCacheRef,
     is_top_level: bool,
     is_breakable: bool,
     is_continuable: bool,
 ) -> Result<(), Vec<Error>> { match stmt {
     // an include statement is always parsed with a string literal
-    ASTreeNode::Include((filename, _span)) => {
+    AstNode::Include((filename, _span)) => {
         if !is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -35,7 +36,7 @@ pub fn xs_tc_stmt(
             let mut inc_path = inc_path.clone();
             inc_path.push(&filename[1..(filename.len()-1)]);
             if inc_path.is_file() {
-                result = Some(gen_errs_from_path(&inc_path, type_env));
+                result = Some(gen_errs_from_path(&inc_path, type_env, ast_cache));
                 break
             }
         }
@@ -54,7 +55,7 @@ pub fn xs_tc_stmt(
         // inc_path.push(&filename[1..(filename.len()-1)]);
         // gen_errs_from_path(&inc_path, type_env)
     }
-    ASTreeNode::VarDef {
+    AstNode::VarDef {
         is_extern,
         is_static,
         is_const,
@@ -155,7 +156,7 @@ pub fn xs_tc_stmt(
         Ok(())
 
     }
-    ASTreeNode::VarAssign {
+    AstNode::VarAssign {
         name: spanned_name,
         value: spanned_expr
     } => {
@@ -194,7 +195,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::RuleDef {
+    AstNode::RuleDef {
         name: (name, name_span),
         rule_opts, // todo check for dups, add grp names
         body: (body, body_span)
@@ -264,7 +265,7 @@ pub fn xs_tc_stmt(
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -279,7 +280,7 @@ pub fn xs_tc_stmt(
 
         results
     }
-    ASTreeNode::FnDef {
+    AstNode::FnDef {
         is_mutable,
         return_type,
         name: (name, name_span),
@@ -414,7 +415,7 @@ pub fn xs_tc_stmt(
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -429,7 +430,7 @@ pub fn xs_tc_stmt(
         
         results
     },
-    ASTreeNode::Return(spanned_expr) => {
+    AstNode::Return(spanned_expr) => {
         let Some(IdInfo { type_: return_type, .. }) = type_env.get_return() else {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -477,7 +478,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::IfElse {
+    AstNode::IfElse {
         condition,
         consequent,
         alternate
@@ -504,7 +505,7 @@ pub fn xs_tc_stmt(
         let results = consequent.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -518,13 +519,13 @@ pub fn xs_tc_stmt(
         combine_results(results.into_iter().chain(alternate.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, is_breakable, is_continuable,
                 )
             })
         ))
     },
-    ASTreeNode::While { condition, body } => {
+    AstNode::While { condition, body } => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -547,13 +548,13 @@ pub fn xs_tc_stmt(
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, true, true,
                 )
             })
         )
     },
-    ASTreeNode::For { var, condition, body } => {
+    AstNode::For { var, condition, body } => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -562,7 +563,7 @@ pub fn xs_tc_stmt(
             ));
         }
 
-        let (ASTreeNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
+        let (AstNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
         else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
         /* Redefinitions are allowed for for loop variables */
@@ -599,13 +600,13 @@ pub fn xs_tc_stmt(
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env,
+                    path, spanned_stmt, type_env, ast_cache,
                     false, true, true,
                 )
             })
         )
     },
-    ASTreeNode::Switch { clause, cases } => {
+    AstNode::Switch { clause, cases } => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -629,7 +630,7 @@ pub fn xs_tc_stmt(
             results.push(combine_results(body.iter()
                 .map(|spanned_stmt| {
                     xs_tc_stmt(
-                        path, spanned_stmt, type_env,
+                        path, spanned_stmt, type_env, ast_cache,
                         false, true, is_continuable,
                     )
                 })
@@ -677,7 +678,7 @@ pub fn xs_tc_stmt(
         
         combine_results(results)
     },
-    ASTreeNode::PostDPlus((id, id_span)) => {
+    AstNode::PostDPlus((id, id_span)) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -702,7 +703,7 @@ pub fn xs_tc_stmt(
         
         Ok(())
     },
-    ASTreeNode::PostDMinus((id, id_span)) => {
+    AstNode::PostDMinus((id, id_span)) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -727,7 +728,7 @@ pub fn xs_tc_stmt(
         
         Ok(())
     },
-    ASTreeNode::Break => {
+    AstNode::Break => {
         if !is_breakable {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -738,7 +739,7 @@ pub fn xs_tc_stmt(
         
         Ok(())
     },
-    ASTreeNode::Continue => {
+    AstNode::Continue => {
         if !is_continuable {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -749,7 +750,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::LabelDef((id, id_span)) => {
+    AstNode::LabelDef((id, id_span)) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -774,7 +775,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::Goto((id, id_span)) => {
+    AstNode::Goto((id, id_span)) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -791,7 +792,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::Discarded(spanned_expr) => {
+    AstNode::Discarded(spanned_expr) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -825,7 +826,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::Debug((id, id_span)) => {
+    AstNode::Debug((id, id_span)) => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -850,7 +851,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::Breakpoint => {
+    AstNode::Breakpoint => {
         if is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -868,7 +869,7 @@ pub fn xs_tc_stmt(
 
         Ok(())
     },
-    ASTreeNode::Class { name: (id, id_span), member_vars } => {
+    AstNode::Class { name: (id, id_span), member_vars } => {
         if !is_top_level {
             type_env.add_err(path, XSError::syntax(
                 span,
@@ -889,7 +890,7 @@ pub fn xs_tc_stmt(
 
         let mut mem_name: HashMap<&Identifier, &Span> = HashMap::with_capacity(member_vars.len());
         for (member_var, _var_span) in member_vars {
-            let ASTreeNode::VarDef {
+            let AstNode::VarDef {
                 type_,
                 name: (id, id_span),
                 value,

@@ -1534,6 +1534,7 @@ version = "0.1.0"
 dependencies = [
  "ariadne",
  "chumsky",
+ "dashmap 7.0.0-rc2",
 ]
 
 [[package]]

@@ -3,16 +3,31 @@ use std::fs;
 
 use chumsky::input::Input;
 use chumsky::Parser;
-
 use crate::parsing::lexer::{lexer, Token};
 use crate::parsing::parser::parser;
+use crate::parsing::ast::AstNode;
+use crate::parsing::span::Spanned;
 use crate::r#static::info::{Error, ParseError, TypeEnv};
 use crate::r#static::type_check::xs_tc;
 
+#[cfg(feature = "lsp")]
+pub type AstMap<K, V> = dashmap::DashMap<K, V>;
+
+#[cfg(not(feature = "lsp"))]
+pub type AstMap<K, V> = std::collections::HashMap<K, V>;
+
+pub type AstCache = AstMap<PathBuf, Vec<Spanned<AstNode>>>;
+
+#[cfg(feature = "lsp")]
+pub type AstCacheRef<'a> = &'a AstCache;
+
+#[cfg(not(feature = "lsp"))]
+pub type AstCacheRef<'a> = &'a mut AstCache;
 
 pub fn gen_errs_from_path(
     path: &PathBuf,
     type_env: &mut TypeEnv,
+    ast_cache: AstCacheRef,
 ) -> Result<(), Vec<Error>> {
     let src = match fs::read_to_string(&path) {
         Ok(src) => {src}
@@ -22,13 +37,14 @@ pub fn gen_errs_from_path(
         }
     };
 
-    gen_errs_from_src(path, &src, type_env)
+    gen_errs_from_src(path, &src, type_env, ast_cache)
 }
 
 pub fn gen_errs_from_src(
     path: &PathBuf,
     src: &str,
     type_env: &mut TypeEnv,
+    ast_cache: AstCacheRef,
 ) -> Result<(), Vec<Error>> {
     let (tokens, errs) = lexer()
         .parse(src)
@@ -61,5 +77,7 @@ pub fn gen_errs_from_src(
         )]);
     };
 
-    xs_tc(path, &ast, type_env)
+    let r = xs_tc(path, &ast, type_env, ast_cache);
+    ast_cache.insert(path.clone(), ast);
+    r
 }
