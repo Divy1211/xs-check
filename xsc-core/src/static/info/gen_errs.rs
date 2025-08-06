@@ -27,8 +27,8 @@ pub fn gen_errs_from_path(
 
     #[cfg(not(feature = "lsp"))]
     let result = match src_cache.get(path) {
-        Some(entry) => {
-            Ok(Cow::Borrowed(entry))
+        Some(src) => {
+            Ok(Cow::Borrowed(src))
         }
         None => fs::read_to_string(path).map(Cow::Owned),
     };

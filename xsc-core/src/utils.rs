@@ -22,7 +22,7 @@ pub fn pop<K: Eq + Hash, V>(cache: AstMapRef<K, V>, path: &K) -> Option<V> {
     return cache.remove(path).map(|(_path, entry)| entry);
 
     #[cfg(not(feature = "lsp"))]
-    return ast_cache.remove(path);
+    return cache.remove(path);
 }
 
 #[allow(dead_code)]
