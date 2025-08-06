@@ -5,7 +5,19 @@ use chumsky::container::Container;
 
 use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
-use crate::r#static::info::{gen_errs_from_path, AstCacheRef, Error, FnInfo, IdInfo, Modifiers, SrcLoc, TypeEnv, WarningKind, XsError};
+use crate::r#static::info::{
+    gen_errs_from_path,
+    AstCacheRef,
+    Error,
+    FnInfo,
+    IdInfo,
+    Modifiers,
+    SrcCacheRef,
+    SrcLoc,
+    TypeEnv,
+    WarningKind,
+    XsError,
+};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
 
@@ -14,6 +26,7 @@ pub fn xs_tc_stmt(
     (stmt, span): &Spanned<AstNode>,
     type_env: &mut TypeEnv,
     ast_cache: AstCacheRef,
+    src_cache: SrcCacheRef,
     is_top_level: bool,
     is_breakable: bool,
     is_continuable: bool,
@@ -30,13 +43,18 @@ pub fn xs_tc_stmt(
         }
         
         let include_dirs = type_env.include_dirs.clone();
+        let deps = type_env.dependencies.as_mut()
+            .expect("Re-using type_env is not supported")
+            .entry(path.clone())
+            .or_default();
         
         let mut result = None;
         for inc_path in include_dirs.iter() {
             let mut inc_path = inc_path.clone();
             inc_path.push(&filename[1..(filename.len()-1)]);
             if inc_path.is_file() {
-                result = Some(gen_errs_from_path(&inc_path, type_env, ast_cache));
+                deps.push(inc_path.clone());
+                result = Some(gen_errs_from_path(&inc_path, type_env, ast_cache, src_cache));
                 break
             }
         }
@@ -265,7 +283,7 @@ pub fn xs_tc_stmt(
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -415,7 +433,7 @@ pub fn xs_tc_stmt(
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -505,7 +523,7 @@ pub fn xs_tc_stmt(
         let results = consequent.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -519,7 +537,7 @@ pub fn xs_tc_stmt(
         combine_results(results.into_iter().chain(alternate.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -548,7 +566,7 @@ pub fn xs_tc_stmt(
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, true, true,
                 )
             })
@@ -600,7 +618,7 @@ pub fn xs_tc_stmt(
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache,
                     false, true, true,
                 )
             })
@@ -630,7 +648,7 @@ pub fn xs_tc_stmt(
             results.push(combine_results(body.iter()
                 .map(|spanned_stmt| {
                     xs_tc_stmt(
-                        path, spanned_stmt, type_env, ast_cache,
+                        path, spanned_stmt, type_env, ast_cache, src_cache,
                         false, true, is_continuable,
                     )
                 })

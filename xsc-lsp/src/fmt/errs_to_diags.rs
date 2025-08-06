@@ -7,12 +7,12 @@ use xsc_core::r#static::info::{Error, XsError};
 
 use crate::fmt::msg_fmt::msg_fmt;
 use crate::fmt::pos_info::pos_from_span;
-use crate::backend::backend::RawSourceInfo;
+use crate::backend::backend::SrcCache;
 
 pub fn xs_errs_to_diags(
     uri: &Url,
     errs: &HashMap<PathBuf, Vec<XsError>>,
-    editors: &RawSourceInfo,
+    editors: &SrcCache,
     ignores: &HashSet<u32>
 ) -> Vec<Diagnostic> {
     let mut diags = Vec::with_capacity(errs.values().map(|v| v.len()).sum());
@@ -141,22 +141,24 @@ pub fn xs_errs_to_diags(
     diags
 }
 
-pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &RawSourceInfo) -> Vec<Diagnostic> {
+pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &SrcCache) -> Vec<Diagnostic> {
     let mut diags = Vec::with_capacity(errs.len());
 
     for err in errs {
         match err {
             Error::FileErr(path, msg) => {
-                let (err_uri, _src) = &*editors.get(path)
+                let (err_uri, src) = &*editors.get(path)
                     .expect("Cached before do_lint & parse_errs_to_diags");
                 if err_uri != uri {
                     continue
                 }
 
+                let last_line = src.len_lines().saturating_sub(1);
+                
                 diags.push(Diagnostic {
                     range: Range {
                         start: Position { line: 0, character: 0 },
-                        end: Position { line: 0, character: 0 },
+                        end: Position { line: last_line as u32, character: src.line(last_line).len_chars() as u32},
                     },
                     severity: Some(DiagnosticSeverity::ERROR),
                     code: None,

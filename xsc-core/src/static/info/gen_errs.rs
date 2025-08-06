@@ -1,46 +1,47 @@
-use std::path::PathBuf;
+#[cfg(not(feature = "lsp"))]
+use std::borrow::Cow;
 use std::fs;
-use blake3::Hash;
+use std::path::PathBuf;
+
 use chumsky::input::Input;
 use chumsky::Parser;
 use crate::parsing::lexer::{lexer, Token};
 use crate::parsing::parser::parser;
-use crate::parsing::ast::AstNode;
-use crate::parsing::span::Spanned;
-use crate::r#static::info::{Error, ParseError, TypeEnv};
+use crate::r#static::info::{AstCacheRef, Error, ParseError, SrcCacheRef, TypeEnv};
 use crate::r#static::type_check::xs_tc;
-use crate::utils::{pop};
-
-#[cfg(feature = "lsp")]
-pub type AstMap<K, V> = dashmap::DashMap<K, V>;
-
-#[cfg(not(feature = "lsp"))]
-pub type AstMap<K, V> = std::collections::HashMap<K, V>;
-
-pub type AstInfo = (Option<Hash>, Vec<Spanned<AstNode>>);
-
-pub type AstCache = AstMap<PathBuf, AstInfo>;
-
-#[cfg(feature = "lsp")]
-pub type AstCacheRef<'a> = &'a AstCache;
-
-#[cfg(not(feature = "lsp"))]
-pub type AstCacheRef<'a> = &'a mut AstCache;
+use crate::utils::pop;
 
 pub fn gen_errs_from_path(
     path: &PathBuf,
     type_env: &mut TypeEnv,
     ast_cache: AstCacheRef,
+    src_cache: SrcCacheRef,
 ) -> Result<(), Vec<Error>> {
-    let src = match fs::read_to_string(&path) {
-        Ok(src) => {src}
+    #[cfg(feature = "lsp")]
+    let result = match src_cache.get(path) {
+        Some(entry) => {
+            Ok(entry.value().1.to_string())
+        }
+        None => fs::read_to_string(path),
+    };
+
+    #[cfg(not(feature = "lsp"))]
+    let result = match src_cache.get(path) {
+        Some(entry) => {
+            Ok(Cow::Borrowed(entry))
+        }
+        None => fs::read_to_string(path).map(Cow::Owned),
+    };
+
+    let src = match result {
+        Ok(src) => { src }
         Err(err) => {
             let path_str = path.display();
             return Err(vec![Error::FileErr(path.clone(), format!("Failed to read path '{path_str}', details: {err}"))])
         }
     };
 
-    gen_errs_from_src(path, &src, type_env, ast_cache)
+    gen_errs_from_src(path, &src, type_env, ast_cache, src_cache)
 }
 
 pub fn gen_errs_from_src(
@@ -48,6 +49,7 @@ pub fn gen_errs_from_src(
     src: &str,
     type_env: &mut TypeEnv,
     ast_cache: AstCacheRef,
+    src_cache: SrcCacheRef,
 ) -> Result<(), Vec<Error>> {
     let (tokens, errs) = lexer()
         .parse(src)
@@ -62,7 +64,7 @@ pub fn gen_errs_from_src(
         };
         ast_cache.insert(path.clone(), (None, vec![]));
         if hash == prev_hash {
-            let r = xs_tc(path, &ast, type_env, ast_cache);
+            let r = xs_tc(path, &ast, type_env, ast_cache, src_cache);
             ast_cache.insert(path.clone(), (Some(hash), ast));
             return r;
         }
@@ -98,7 +100,7 @@ pub fn gen_errs_from_src(
     };
 
     ast_cache.insert(path.clone(), (None, vec![]));
-    let r = xs_tc(path, &ast, type_env, ast_cache);
+    let r = xs_tc(path, &ast, type_env, ast_cache, src_cache);
     ast_cache.insert(path.clone(), (Some(hash), ast));
     r
 }

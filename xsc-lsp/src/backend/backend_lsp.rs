@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
 use tower_lsp::lsp_types::{
@@ -25,8 +26,7 @@ use ropey::Rope;
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::span_from_pos;
 use crate::semantic_tokens::{get_semantic_token_legend, gen_tokens};
-#[allow(unused_imports)]
-use crate::utils::{log, path_from_uri};
+use crate::utils::{path_from_uri};
 
 #[async_trait]
 impl LanguageServer for Backend {
@@ -76,7 +76,7 @@ impl LanguageServer for Backend {
         let path = path_from_uri(&uri);
         let mut val = self.editors.get_mut(&path).expect("Cached before did_change");
 
-        let (_uri, src) = &mut *val;
+        let (_uri, src) = val.value_mut();
         for change in params.content_changes {
             match change.range {
                 None => { 
@@ -94,6 +94,21 @@ impl LanguageServer for Backend {
         drop(val);
         self.remove_cached(&path);
         self.do_lint(uri).await;
+        
+        let mut to_relint = HashSet::new();
+        for entry in self.dependencies.iter() {
+            let (child_path, deps) = entry.pair();
+            if !deps.contains(&path) {
+                continue;
+            }
+            let info = self.editors.get(child_path).expect("Dependency cached in do_lint");
+            let (uri, _src) = info.value();
+            to_relint.insert(uri.clone());
+        }
+        
+        for uri in to_relint {
+            self.do_lint(uri).await;
+        }
     }
 
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
@@ -101,6 +116,7 @@ impl LanguageServer for Backend {
         let path = path_from_uri(&uri);
         if uri.to_file_path().is_err() {
             self.editors.remove(&path);
+            self.dependencies.remove(&path);
             self.remove_cached(&path);
         }
     }

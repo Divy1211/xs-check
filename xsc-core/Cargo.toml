@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2021"
 
 [features]
-lsp = ["dashmap"]
+lsp = ["dashmap", "ropey", "tower-lsp"]
 
 [dependencies]
-ariadne = "0.4.1"
-chumsky = "=1.0.0-alpha.7"
+ariadne = { workspace = true }
 blake3 = "1.7.0"
-dashmap = { version = "7.0.0-rc2", optional = true }
+chumsky = "=1.0.0-alpha.7"
+dashmap = { workspace = true, optional = true }
+ropey = { workspace = true, optional = true }
+tower-lsp = { workspace = true, optional = true }

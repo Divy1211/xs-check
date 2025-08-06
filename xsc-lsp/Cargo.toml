@@ -11,15 +11,16 @@ description = "An LSP for AoE2:DE's flavour of XS"
 chrono = "0.4.38"
 
 [dependencies]
-tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-std"]}
-tower-lsp = "0.20.0"
+anyhow = "1.0.97"
+async-trait = "0.1.88"
+dashmap = { workspace = true }
+dunce = { workspace = true }
+env_logger = "0.11.7"
+ropey = { workspace = true }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-async-trait = "0.1.88"
-env_logger = "0.11.7"
-dashmap = "7.0.0-rc2"
-anyhow = "1.0.97"
-ropey = "1.6.1"
+tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-std"]}
+tower-lsp = { workspace = true }
 xsc-core = { path = "../xsc-core", features = ["lsp"] }
 
 [[bin]]

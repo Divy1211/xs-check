@@ -19,6 +19,7 @@ pub struct TypeEnv {
     pub current_fnv_env: Option<FnInfo>, // mmm...
     
     pub include_dirs: Arc<Vec<PathBuf>>,
+    pub dependencies: Option<HashMap<PathBuf, HashSet<PathBuf>>>,
 }
 
 impl TypeEnv {
@@ -33,7 +34,9 @@ impl TypeEnv {
             identifiers: HashMap::new(),
             fn_envs: HashMap::new(),
             errs: HashMap::new(),
+            
             include_dirs: Arc::new(include_dirs),
+            dependencies: Some(HashMap::new()),
             
             current_fnv_env: None,
         }

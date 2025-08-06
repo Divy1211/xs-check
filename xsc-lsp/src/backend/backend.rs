@@ -1,21 +1,21 @@
-use std::sync::{Arc, OnceLock};
+use dashmap::{DashMap, DashSet};
+use ropey::Rope;
 use std::path::{Path, PathBuf};
-use tower_lsp::Client;
+use std::sync::{Arc, OnceLock};
 use tokio::sync::RwLock;
 use tower_lsp::lsp_types::{
     MessageType,
     Url
 };
-use ropey::Rope;
-use dashmap::DashMap;
-use xsc_core::r#static::info::{gen_errs_from_src, AstCache, AstMap, TypeEnv};
+use tower_lsp::Client;
 
+use xsc_core::r#static::info::{gen_errs_from_src, AstCache, AstMap, TypeEnv};
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
 use crate::fmt::errs_to_diags::{parse_errs_to_diags, xs_errs_to_diags};
 use crate::utils::path_from_uri;
 
-pub type RawSourceInfo = DashMap<PathBuf, (Url, Rope)>;
+pub type SrcCache = DashMap<PathBuf, (Url, Rope)>;
 
 pub type EnvCache = DashMap<PathBuf, TypeEnv>; 
 
@@ -23,9 +23,10 @@ pub struct Backend {
     client: Client,
     config: Arc<OnceLock<RwLock<ExtConfig>>>,
     prelude_env: Arc<OnceLock<RwLock<TypeEnv>>>,
-    pub editors: RawSourceInfo,
+    pub editors: SrcCache,
     pub ast_cache: AstCache,
-    pub env_cache: EnvCache,
+    env_cache: EnvCache,
+    pub dependencies: DashMap<PathBuf, DashSet<PathBuf>>
 }
 
 impl Backend {
@@ -37,6 +38,7 @@ impl Backend {
             editors: DashMap::new(),
             ast_cache: AstMap::new(),
             env_cache: DashMap::new(),
+            dependencies: DashMap::new(),
         }
     }
     
@@ -61,16 +63,21 @@ impl Backend {
         
         let path = path_from_uri(&uri);
         let (_uri, src) = &*self.editors.get(&path).expect("Cached before do_lint");
-
-        let Err(errs) = gen_errs_from_src(&path, &src.to_string(), &mut type_env, &self.ast_cache) else {
-            let diags = xs_errs_to_diags(&uri, &type_env.errs, &self.editors, &config.ignores);
-            self.env_cache.insert(path, type_env);
-            self.client.publish_diagnostics(uri, diags, None).await;
-            return;
+        
+        let diags = match gen_errs_from_src(
+            &path, &src.to_string(),
+            &mut type_env,
+            &self.ast_cache,
+            &self.editors
+        ) {
+            Ok(()) => xs_errs_to_diags(&uri, &type_env.errs, &self.editors, &config.ignores),
+            Err(errs) => parse_errs_to_diags(&uri, &errs, &self.editors),
         };
 
+        let deps = type_env.dependencies.take().expect("New type-env created above");
+        self.dependencies.insert(path.clone(), deps.into_values().into_iter().flatten().collect());
+
         self.env_cache.insert(path, type_env);
-        let diags = parse_errs_to_diags(&uri, &errs, &self.editors);
         self.client.publish_diagnostics(uri, diags, None).await;
     }
     
@@ -110,7 +117,8 @@ impl Backend {
         let prelude_path = PathBuf::from(r"prelude.xs");
         let prelude = include_str!(r"../../../xsc-core/prelude.xs");
 
-        gen_errs_from_src(&prelude_path, prelude, &mut type_env, &self.ast_cache).expect("Prelude can't produce parse errors");
+        gen_errs_from_src(&prelude_path, prelude, &mut type_env, &self.ast_cache, &self.editors)
+            .expect("Prelude can't produce parse errors");
 
         // todo: extra prelude
 

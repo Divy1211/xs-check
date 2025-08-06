@@ -11,3 +11,10 @@ edition = "2021"
 license = "GPL-3"
 authors = ["Alian713"]
 version = "0.1.0"
+
+[workspace.dependencies]
+ariadne = "0.4.1"
+dashmap = "7.0.0-rc2"
+dunce = "1.0.5"
+ropey = "1.6.1"
+tower-lsp = "0.20.0"

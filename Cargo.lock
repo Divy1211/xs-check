@@ -1560,7 +1560,6 @@ version = "0.2.10"
 dependencies = [
  "ariadne",
  "chrono",
- "chumsky",
  "dunce",
  "structopt",
  "xsc-core",
@@ -1574,6 +1573,8 @@ dependencies = [
  "blake3",
  "chumsky",
  "dashmap 7.0.0-rc2",
+ "ropey",
+ "tower-lsp",
 ]
 
 [[package]]
@@ -1584,6 +1585,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "dashmap 7.0.0-rc2",
+ "dunce",
  "env_logger",
  "ropey",
  "serde",
