@@ -1,6 +1,6 @@
 [package]
 name = "xsc-cli"
-version = "0.2.9"
+version = "0.2.10"
 authors = ["Alian713"]
 edition = "2021"
 description = "A linter for AoE2:DE's flavour of XS"
@@ -14,6 +14,7 @@ chrono = "0.4.38"
 ariadne = "0.4.1"
 chumsky = "=1.0.0-alpha.7"
 structopt = "0.3.26"
+dunce = "1.0.5"
 xsc-core = { path = "../xsc-core" }
 
 [[bin]]

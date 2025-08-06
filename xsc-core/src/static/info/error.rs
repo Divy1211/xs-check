@@ -4,7 +4,7 @@ use crate::r#static::info::ParseError;
 
 #[derive(Debug)]
 pub enum Error {
-    FileErr(String),
+    FileErr(PathBuf, String),
     ParseErrs { path: PathBuf, errs: Vec<ParseError> },
 }
 

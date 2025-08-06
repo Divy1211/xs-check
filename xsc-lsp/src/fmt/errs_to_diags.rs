@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
-use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Range, Url};
+use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Url};
 
 use xsc_core::r#static::info::{Error, XsError};
 
@@ -146,7 +146,28 @@ pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &RawSourceInfo
 
     for err in errs {
         match err {
-            Error::FileErr(_) => { unreachable!("Internal Error Occurred") }
+            Error::FileErr(path, msg) => {
+                let (err_uri, _src) = &*editors.get(path)
+                    .expect("Cached before do_lint & parse_errs_to_diags");
+                if err_uri != uri {
+                    continue
+                }
+
+                diags.push(Diagnostic {
+                    range: Range {
+                        start: Position { line: 0, character: 0 },
+                        end: Position { line: 0, character: 0 },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    code_description: None,
+                    source: Some("xs-check".to_string()),
+                    message: format!("Fatal Error: {}", msg),
+                    related_information: None,
+                    tags: None,
+                    data: None,
+                });
+            }
             Error::ParseErrs { path, errs, .. } => {
                 let (err_uri, src) = &*editors.get(path).expect("Infallible");
                 if err_uri != uri {

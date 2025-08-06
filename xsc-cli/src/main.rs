@@ -55,7 +55,7 @@ fn check_file(filepath: &PathBuf, type_env: &mut TypeEnv, ast_cache: &mut AstCac
         has_errors = true;
         for err in errs {
             match err {
-                Error::FileErr(msg) => {
+                Error::FileErr(_path, msg) => {
                     println!("{}", msg);
                 }
                 Error::ParseErrs { path, errs } => {

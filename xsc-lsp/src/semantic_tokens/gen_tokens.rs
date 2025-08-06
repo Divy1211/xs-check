@@ -9,6 +9,7 @@ use crate::semantic_tokens::{TokenModifier, TokenType};
 use crate::semantic_tokens::semantic_info::SemanticInfo;
 use crate::semantic_tokens::xs_token::XsToken;
 
+// todo: use TypeEnv here
 fn xs_toks(
     (node, _span): &Spanned<AstNode>,
     toks: &mut Vec<XsToken>,

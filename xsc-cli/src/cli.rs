@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 use std::path::PathBuf;
-
+use dunce::canonicalize;
 use xsc_core::utils::warnings_from_str;
 
 use structopt::StructOpt;
@@ -65,7 +65,15 @@ pub fn parse_args() -> Option<(PathBuf, HashSet<u32>, Option<PathBuf>, Vec<PathB
             println!();
             None
         }
-        Some(filepath) => {
+        Some(rel_path) => {
+            let filepath = match canonicalize(&rel_path) {
+                Ok(filepath) => { filepath }
+                Err(err) => {
+                    println!("Failed to open file '{}': {err}", rel_path.display());
+                    return None;
+                }
+            };
+            
             Some((
                 filepath,
                 opt.ignores.unwrap_or_else(HashSet::new),
