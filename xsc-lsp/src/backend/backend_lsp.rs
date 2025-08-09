@@ -92,7 +92,6 @@ impl LanguageServer for Backend {
         }
 
         drop(val);
-        self.remove_cached(&path);
         self.do_lint(uri).await;
         
         let mut to_relint = HashSet::new();
@@ -115,9 +114,7 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri;
         let path = path_from_uri(&uri);
         if uri.to_file_path().is_err() {
-            self.editors.remove(&path);
-            self.dependencies.remove(&path);
-            self.remove_cached(&path);
+            self.remove_entry(&path);
         }
     }
 

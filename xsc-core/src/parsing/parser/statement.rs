@@ -60,6 +60,9 @@ pub fn statement<'tokens>() -> impl Parser<
             label_def_or_goto_or_dbg(),
             discarded_expr(),
             class_def(),
+            select! { Token::Comment(msg) => msg, }
+                .map_with(|msg, info| AstNode::Comment((msg, info.span())))
+                .map_with(|node, info| (node, info.span())),
         ))
     })
 }

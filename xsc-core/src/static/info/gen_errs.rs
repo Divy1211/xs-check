@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use chumsky::input::Input;
 use chumsky::Parser;
-use crate::parsing::lexer::{lexer, Token};
+use crate::parsing::lexer::{lexer};
 use crate::parsing::parser::parser;
 use crate::r#static::info::{AstCacheRef, Error, ParseError, SrcCacheRef, TypeEnv};
 use crate::r#static::type_check::xs_tc;
@@ -70,7 +70,7 @@ pub fn gen_errs_from_src(
         }
     };
     
-    let Some(mut tokens) = tokens else {
+    let Some(tokens) = tokens else {
         ast_cache.insert(path.clone(), (Some(hash), vec![]));
         return Err(vec![Error::parse_errs(
             path,
@@ -80,9 +80,9 @@ pub fn gen_errs_from_src(
         )]);
     };
 
-    tokens = tokens.into_iter()
-        .filter(|tok| match tok { (Token::Comment(_), _) => { false }, _ => { true } })
-        .collect();
+    // tokens = tokens.into_iter()
+    //     .filter(|tok| match tok { (Token::Comment(_), _) => { false }, _ => { true } })
+    //     .collect();
 
     let (ast, errs) = parser()
         .map_with(|ast, e| (ast, e.span()))

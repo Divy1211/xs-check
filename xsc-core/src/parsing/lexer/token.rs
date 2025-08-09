@@ -4,6 +4,8 @@ use crate::parsing::ast::{Identifier, Literal};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Token {
+    Error,
+    
     Plus,
     Minus,
     Star,
@@ -80,6 +82,8 @@ pub enum Token {
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
+            Token::Error => { write!(f, "ERROR") }
+            
             Token::Plus => { write!(f, "+") }
             Token::Minus => { write!(f, "-") }
             Token::Star => { write!(f, "*") }

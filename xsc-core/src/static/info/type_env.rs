@@ -15,7 +15,8 @@ pub struct TypeEnv {
     pub fn_envs: HashMap<Identifier, Vec<FnInfo>>,
     
     pub errs: HashMap<PathBuf, Vec<XsError>>,
-    
+
+    pub current_doc: Option<String>,
     pub current_fnv_env: Option<FnInfo>, // mmm...
     
     pub include_dirs: Arc<Vec<PathBuf>>,
@@ -34,10 +35,11 @@ impl TypeEnv {
             identifiers: HashMap::new(),
             fn_envs: HashMap::new(),
             errs: HashMap::new(),
-            
+
             include_dirs: Arc::new(include_dirs),
             dependencies: Some(HashMap::new()),
-            
+
+            current_doc: None,
             current_fnv_env: None,
         }
     }
@@ -98,5 +100,13 @@ impl TypeEnv {
             .entry(name.clone())
             .or_insert(vec![])
             .push(fn_env);
+    }
+    
+    pub fn set_doc(&mut self, doc: &String) {
+        self.current_doc = Some(doc.clone());
+    }
+    
+    pub fn take_doc(&mut self) -> Option<String> {
+        self.current_doc.take()
     }
 }

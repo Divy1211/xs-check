@@ -15,3 +15,9 @@ impl Display for Identifier {
         write!(f, "{}", self.0)
     }
 }
+
+impl From<&str> for Identifier {
+    fn from(name: &str) -> Self {
+        Identifier(name.to_string())
+    }
+}

@@ -13,3 +13,8 @@ chumsky = "=1.0.0-alpha.7"
 dashmap = { workspace = true, optional = true }
 ropey = { workspace = true, optional = true }
 tower-lsp = { workspace = true, optional = true }
+
+[[bin]]
+name = "xs-check-test"
+path = "src/main.rs"
+bench = false

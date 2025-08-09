@@ -20,6 +20,8 @@ pub enum RuleOpt {
 
 #[derive(Debug, Clone)]
 pub enum AstNode {
+    Comment(Spanned<String>),
+    Error,
     Include(Spanned<String>),
     VarDef {
         is_extern: bool,              // no extern inside locals

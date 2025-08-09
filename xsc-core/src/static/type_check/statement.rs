@@ -2,7 +2,7 @@ use std::collections::{HashMap};
 use std::path::PathBuf;
 
 use chumsky::container::Container;
-
+use crate::doxygen::Doc;
 use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
 use crate::r#static::info::{
@@ -30,7 +30,15 @@ pub fn xs_tc_stmt(
     is_top_level: bool,
     is_breakable: bool,
     is_continuable: bool,
-) -> Result<(), Vec<Error>> { match stmt {
+) -> Result<(), Vec<Error>> { 
+    let doc = type_env.take_doc().and_then(|doc_str| Doc::parse(&doc_str));
+
+match stmt {
+    AstNode::Comment((msg, _span)) => {
+        type_env.set_doc(msg);
+        Ok(())
+    },
+    AstNode::Error => { Ok(()) },
     // an include statement is always parsed with a string literal
     AstNode::Include((filename, _span)) => {
         if !is_top_level {
@@ -93,7 +101,10 @@ pub fn xs_tc_stmt(
             }
             None => {
                 type_env.set(name, IdInfo::from_with_mods(
-                    type_, SrcLoc::from(path, name_span), Modifiers::var(*is_static, *is_const, *is_extern)
+                    type_,
+                    SrcLoc::from(path, name_span),
+                    doc,
+                    Modifiers::var(*is_static, *is_const, *is_extern)
                 ));
             }
         };
@@ -267,7 +278,7 @@ pub fn xs_tc_stmt(
                 ))
             }
             None => {
-                type_env.set_global(name, IdInfo::new(Type::Rule, SrcLoc::from(path, name_span)));
+                type_env.set_global(name, IdInfo::new(Type::Rule, SrcLoc::from(path, name_span), doc));
             }
         };
 
@@ -411,7 +422,8 @@ pub fn xs_tc_stmt(
             } else {
                 type_env.set_global(name, IdInfo::new(
                      Type::Func { is_mutable: *is_mutable, type_sign: new_type_sign },
-                     SrcLoc::from(path, name_span)
+                     SrcLoc::from(path, name_span),
+                     None,
                 ))
             },
             Some(IdInfo { src_loc: og_src_loc, .. }) => {
@@ -425,7 +437,7 @@ pub fn xs_tc_stmt(
             _ => {
                 type_env.set_global(name, IdInfo::new(
                     Type::Func { is_mutable: *is_mutable, type_sign: new_type_sign },
-                    SrcLoc::from(path, name_span)
+                    SrcLoc::from(path, name_span), doc
                 ))
             }
         }
@@ -603,7 +615,7 @@ pub fn xs_tc_stmt(
             type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));
         }
 
-        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span)));
+        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), None));
         if let Some(type_) = xs_tc_expr(path, condition, type_env) {
             if type_ != Type::Bool {
                 type_env.add_err(path, XsError::type_mismatch(
@@ -789,7 +801,7 @@ pub fn xs_tc_stmt(
             }
             _ => {}
         };
-        type_env.set(id, IdInfo::new(Type::Label, SrcLoc::from(path, id_span)));
+        type_env.set(id, IdInfo::new(Type::Label, SrcLoc::from(path, id_span), doc));
 
         Ok(())
     },
@@ -903,7 +915,7 @@ pub fn xs_tc_stmt(
                 None,
             ))
         } else {
-            type_env.set(id, IdInfo::new(Type::Class, SrcLoc::from(path, id_span)));
+            type_env.set(id, IdInfo::new(Type::Class, SrcLoc::from(path, id_span), doc));
         }
 
         let mut mem_name: HashMap<&Identifier, &Span> = HashMap::with_capacity(member_vars.len());

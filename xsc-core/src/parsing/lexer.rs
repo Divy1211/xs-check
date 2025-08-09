@@ -26,6 +26,7 @@ pub fn lexer<'src>() -> impl Parser<
         keyword(),
         operator(),
         punctuation(),
+        // any().ignore_then(none_of(" \t\n(){};,").repeated()).to_slice().map(|_src| Token::Error)
     ))
         .map_with(|tok, info| (tok, info.span()))
         .padded()

@@ -1,4 +1,7 @@
+int b = 10;
+int a = 10;
+
 void main() {
-    int b = 10;
-    int a =
+    int d = 10;
+    int e = 20;
 }

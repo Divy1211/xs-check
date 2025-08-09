@@ -25,7 +25,7 @@ pub struct Backend {
     prelude_env: Arc<OnceLock<RwLock<TypeEnv>>>,
     pub editors: SrcCache,
     pub ast_cache: AstCache,
-    env_cache: EnvCache,
+    pub env_cache: EnvCache,
     pub dependencies: DashMap<PathBuf, DashSet<PathBuf>>
 }
 
@@ -42,7 +42,9 @@ impl Backend {
         }
     }
     
-    pub fn remove_cached(&self, path: &Path) {
+    pub fn remove_entry(&self, path: &Path) {
+        self.editors.remove(path);
+        self.dependencies.remove(path);
         self.ast_cache.remove(path);
         self.env_cache.remove(path);
     }
