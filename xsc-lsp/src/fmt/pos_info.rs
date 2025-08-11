@@ -19,7 +19,7 @@ pub fn pos_from_span(src: &Rope, span: &Span) -> (Position, Position) {
     })
 }
 
-pub fn span_from_pos(src: &Rope, start: Position, end: Position) -> Span {
+pub fn span_from_pos(src: &Rope, start: &Position, end: &Position) -> Span {
     let start = src.line_to_char(start.line as usize) + start.character as usize;
     let end = src.line_to_char(end.line as usize) + end.character as usize;
     

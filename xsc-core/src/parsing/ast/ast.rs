@@ -18,6 +18,21 @@ pub enum RuleOpt {
     Group(Spanned<String>),
 }
 
+impl RuleOpt {
+    pub fn render(&self) -> String {
+        match self {
+            RuleOpt::Active => "active".into(),
+            RuleOpt::Inactive => "inactive".into(),
+            RuleOpt::RunImmediately => "runImmediately".into(),
+            RuleOpt::HighFrequency => "highFrequency".into(),
+            RuleOpt::MinInterval((num, _span)) => format!("minInterval {num}"),
+            RuleOpt::MaxInterval((num, _span)) => format!("maxInterval {num}"),
+            RuleOpt::Priority((num, _span)) => format!("priority {num}"),
+            RuleOpt::Group((grp, _span)) => format!("group {grp}"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum AstNode {
     Comment(Spanned<String>),

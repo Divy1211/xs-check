@@ -1,10 +1,12 @@
 use std::collections::HashMap;
-use crate::parsing::ast::Identifier;
+use crate::parsing::ast::{Identifier, Type};
+use crate::r#static::info::IdInfo;
 
 #[derive(Debug, Clone)]
 pub enum Doc {
+    None,
     Desc(String),
-    FnDesc { desc: String, params: HashMap<Identifier, String>, returns: String },
+    FnDesc { desc: String, params: HashMap<Identifier, (usize, String)>, returns: String },
 }
 
 impl Doc {
@@ -26,8 +28,8 @@ impl Doc {
             .collect::<Vec<_>>();
 
         let mut desc_lines = Vec::new();
-        let mut params = HashMap::new();
-        let mut returns_lines = Vec::new();
+        let mut param_lines = HashMap::new();
+        let mut return_lines = Vec::new();
 
         enum Mode {
             Desc,
@@ -36,6 +38,7 @@ impl Doc {
         }
 
         let mut mode = Mode::Desc;
+        let mut idx = 0usize;
 
         for line in content {
             if line.starts_with("@param") {
@@ -43,15 +46,16 @@ impl Doc {
                 if let Some(name) = parts.next() {
                     let desc = parts.next().unwrap_or("").to_string();
                     let id = Identifier(name.to_string());
-                    params.insert(id.clone(), vec![desc]);
+                    param_lines.insert(id.clone(), (vec![desc], idx));
                     mode = Mode::Param(id);
+                    idx += 1;
                 } else {
                     mode = Mode::Desc;
                 }
             } else if line.starts_with("@returns") {
                 let desc = line["@returns".len()..].trim().to_string();
-                returns_lines.clear();
-                returns_lines.push(desc);
+                return_lines.clear();
+                return_lines.push(desc);
                 mode = Mode::Returns;
             } else if line.starts_with('@') {
                 mode = Mode::Desc;
@@ -60,30 +64,97 @@ impl Doc {
                 match &mut mode {
                     Mode::Desc => desc_lines.push(line),
                     Mode::Param(id) => {
-                        if let Some(v) = params.get_mut(id) {
+                        if let Some((v, _i)) = param_lines.get_mut(id) {
                             v.push(line);
                         }
                     }
-                    Mode::Returns => returns_lines.push(line),
+                    Mode::Returns => return_lines.push(line),
                 }
             }
         }
 
-        let desc_str = desc_lines.join("\n").trim().to_string();
-        let params_str = params
+        let desc = desc_lines.join("\n").trim().to_string();
+        let params = param_lines
             .into_iter()
-            .map(|(k, v)| (k, v.join("\n").trim().to_string()))
+            .map(|(k, (v, i))| (k, (i, v.join("\n").trim().to_string())))
             .collect::<HashMap<_, _>>();
-        let returns_str = returns_lines.join("\n").trim().to_string();
+        let returns = return_lines.join("\n").trim().to_string();
 
-        if !params_str.is_empty() || !returns_str.is_empty() {
-            Some(Doc::FnDesc {
-                desc: desc_str,
-                params: params_str,
-                returns: returns_str,
-            })
+        if !params.is_empty() || !returns.is_empty() {
+            Some(Doc::FnDesc { desc, params, returns })
         } else {
-            Some(Doc::Desc(desc_str))
+            Some(Doc::Desc(desc))
+        }
+    }
+    
+    pub fn render(&self, id: &Identifier, info: &IdInfo) -> String {
+        let sign = 'sign: { match &info.type_ {
+            Type::Int | Type::Float | Type::Bool | Type::Str | Type::Vec | Type::Label => {
+                let Some(init) = &info.init else {
+                    break 'sign format!("```xs\n{} {}\n```", info.type_, id.0);
+                };
+                format!(
+                    "```xs\nconst {} {} = {}\n```",
+                    info.type_,
+                    id.0,
+                    init.lit_str().expect("Non-literal value found in const init")
+                )
+            }
+            Type::Rule => {
+                let opts = info.modifiers.get_rule_opts().expect("Rule missing opts");
+                if opts.len() == 0 {
+                    break 'sign format!("```xs\nrule {}\n```", id.0);
+                }
+                format!(
+                    "```xs\nrule {}\n    {}\n```",
+                    id.0, opts.iter()
+                        .map(|opt| opt.render())
+                        .collect::<Vec<_>>()
+                        .join("\n    ")
+                )
+            }
+            Type::Fn { is_mutable, type_sign } => {
+                let rtype = &type_sign.last().expect("Function missing return type").1;
+                let mutable = if *is_mutable { "mutable " } else { "" };
+                if type_sign.len() == 1 {
+                    break 'sign format!("```xs\n{mutable}{rtype} {}()\n```", id.0)
+                }
+                format!(
+                    "```xs\n{mutable}{rtype} {}(\n    {}\n)\n```",
+                    id.0,
+                    type_sign[..type_sign.len()-1].iter()
+                        .map(|(id, type_)| format!("{type_} {id}"))
+                        .collect::<Vec<_>>()
+                        .join("\n    ")
+                )
+            }
+            _ => { unreachable!("Internal Error Occurred"); }
+        }};
+        
+        match self {
+            Doc::None => sign,
+            Doc::Desc(desc) => {
+                format!("{}\n\n{}", sign, desc.clone())
+            },
+            Doc::FnDesc { desc, params, returns } => {
+                let mut doc = format!("{}\n\n{}", sign, desc.clone());
+                if params.len() > 0 {
+                    let mut params = params.iter().collect::<Vec<_>>();
+                    params.sort_by_key(|(_id, (idx, _desc))| idx);
+
+                    doc += &format!(
+                        "\n\n**Parameters**:\n\n{}",
+                        params.iter()
+                            .map(|(id, (idx, desc))| format!("{}. **`{}:`** {}", idx+1, id, desc))
+                            .collect::<Vec<_>>()
+                            .join("\n")
+                    );
+                }
+                if returns.len() > 0 {
+                    doc += &format!("\n\n**Returns**:\n\n{returns}");
+                }
+                doc
+            }
         }
     }
 }

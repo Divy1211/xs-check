@@ -1,14 +1,26 @@
-use std::collections::HashSet;
+use std::default::Default;
+use std::collections::{HashSet};
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
 use tower_lsp::lsp_types::{
+    CompletionItem,
+    CompletionItemKind,
+    CompletionOptions,
+    CompletionParams,
+    CompletionResponse,
     DidChangeConfigurationParams,
     DidChangeTextDocumentParams,
     DidCloseTextDocumentParams,
     DidOpenTextDocumentParams,
+    Hover,
+    HoverContents,
+    HoverParams,
+    HoverProviderCapability,
     InitializeParams,
     InitializeResult,
     InitializedParams,
+    MarkupContent,
+    MarkupKind,
     SemanticTokens,
     SemanticTokensFullOptions,
     SemanticTokensOptions,
@@ -18,10 +30,12 @@ use tower_lsp::lsp_types::{
     ServerCapabilities,
     ServerInfo,
     TextDocumentSyncCapability,
-    TextDocumentSyncKind,
+    TextDocumentSyncKind
 };
 
 use ropey::Rope;
+
+use xsc_core::parsing::ast::{Type};
 
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::span_from_pos;
@@ -42,6 +56,16 @@ impl LanguageServer for Backend {
                     range: None,
                     ..Default::default()
                 })),
+                completion_provider: Some(CompletionOptions {
+                    resolve_provider: Some(false),
+                    trigger_characters: Some(
+                        "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".chars()
+                            .map(|c| c.to_string())
+                            .collect()
+                    ),
+                    ..Default::default()
+                }),
+                hover_provider: Some(HoverProviderCapability::Simple(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -83,7 +107,7 @@ impl LanguageServer for Backend {
                     *src = Rope::from(change.text);
                 }
                 Some(range) => {
-                    let span = span_from_pos(&src, range.start, range.end);
+                    let span = span_from_pos(&src, &range.start, &range.end);
 
                     src.remove(span.start..span.end);
                     src.insert(span.start, &change.text);
@@ -93,7 +117,7 @@ impl LanguageServer for Backend {
 
         drop(val);
         self.do_lint(uri).await;
-        
+
         let mut to_relint = HashSet::new();
         for entry in self.dependencies.iter() {
             let (child_path, deps) = entry.pair();
@@ -104,7 +128,7 @@ impl LanguageServer for Backend {
             let (uri, _src) = info.value();
             to_relint.insert(uri.clone());
         }
-        
+
         for uri in to_relint {
             self.do_lint(uri).await;
         }
@@ -116,6 +140,35 @@ impl LanguageServer for Backend {
         if uri.to_file_path().is_err() {
             self.remove_entry(&path);
         }
+    }
+
+    async fn hover(&self, params: HoverParams) -> tower_lsp::jsonrpc::Result<Option<Hover>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        let path = path_from_uri(&uri);
+
+        let entry = self.editors.get(&path).expect("Cached before hover");
+        let (_url, src) = entry.value();
+        let id = self.get_id(src, &pos);
+        let span = span_from_pos(src, &pos, &pos);
+        
+        let entry = self.env_cache.get(&path).expect("Cached before hover");
+        let env = entry.value();
+        
+        let info = env.identifiers.get(&id)
+            .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
+        
+        let Some(info) = info else {
+            return Ok(None);
+        };
+        
+        Ok(Some(Hover {
+            contents: HoverContents::Markup(MarkupContent {
+                kind: MarkupKind::Markdown,
+                value: info.doc.render(&id, &info),
+            }),
+            range: None,
+        }))
     }
 
     async fn semantic_tokens_full(&self, params: SemanticTokensParams) -> tower_lsp::jsonrpc::Result<Option<SemanticTokensResult>> {
@@ -130,6 +183,47 @@ impl LanguageServer for Backend {
         })))
     }
 
+    async fn completion(&self, params: CompletionParams) -> tower_lsp::jsonrpc::Result<Option<CompletionResponse>> {
+        let uri = params.text_document_position.text_document.uri;
+        let pos = params.text_document_position.position;
+        let path = path_from_uri(&uri);
+
+        let entry = self.editors.get(&path).expect("Cached before completion");
+        let (_url, src) = entry.value();
+        let prefix = self.get_prefix(src, &pos);
+        let span = span_from_pos(src, &pos, &pos);
+
+        let entry = self.env_cache.get(&path).expect("Cached before completion");
+        let env = entry.value();
+        
+        let ids = env.local_ids(&path, &span)
+            .map(|ids| ids.iter())
+            .unwrap_or_else(Default::default)
+            .chain(env.identifiers.iter())
+            .filter(|(id, _info)| id.0.starts_with(&prefix))
+            .map(|(id, info)| {
+                let kind = match info.type_ {
+                    Type::Int | Type::Float | Type::Bool | Type::Str | Type::Vec => {
+                        CompletionItemKind::VARIABLE
+                    }
+                    Type::Rule | Type::Fn { .. } => { CompletionItemKind::FUNCTION }
+                    _ => { CompletionItemKind::TEXT }
+                };
+
+                CompletionItem {
+                    label: id.0.clone(),
+                    kind: Some(kind),
+                    detail: Some(format!("{}", info.type_)),
+                    insert_text: None,
+                    documentation: None,
+                    deprecated: None,
+                    ..Default::default()
+                }
+            }).collect();
+
+        Ok(Some(CompletionResponse::Array(ids)))
+    }
+
     async fn did_change_configuration(&self, _: DidChangeConfigurationParams) {
         self.build_prelude_env(true).await;
         for entry in self.editors.iter() {
@@ -138,4 +232,3 @@ impl LanguageServer for Backend {
         }
     }
 }
-

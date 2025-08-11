@@ -1,15 +1,15 @@
-use dashmap::{DashMap, DashSet};
-use ropey::Rope;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock};
+
+use dashmap::{DashMap, DashSet};
+use ropey::Rope;
 use tokio::sync::RwLock;
-use tower_lsp::lsp_types::{
-    MessageType,
-    Url
-};
+use tower_lsp::lsp_types::{MessageType, Position, Url};
 use tower_lsp::Client;
 
+use xsc_core::parsing::ast::Identifier;
 use xsc_core::r#static::info::{gen_errs_from_src, AstCache, AstMap, TypeEnv};
+
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
 use crate::fmt::errs_to_diags::{parse_errs_to_diags, xs_errs_to_diags};
@@ -110,7 +110,7 @@ impl Backend {
 
         let config = self.config
             .get()
-            .expect("Infallible")
+            .expect("Config loaded above")
             .read()
             .await;
 
@@ -130,6 +130,32 @@ impl Backend {
             let mut prelude_env = self.prelude_env.get().expect("Initialized").write().await;
             *prelude_env = type_env;
         }
+    }
+    
+    pub fn get_prefix(&self, src: &Rope, pos: &Position) -> String {
+        src.line(pos.line as usize)
+            .to_string()
+            .split_whitespace()
+            .last()
+            .expect("Auto complete triggered on typing")
+            .to_string()
+    }
+
+    pub fn get_id(&self, src: &Rope, pos: &Position) -> Identifier {
+        let line = src.line(pos.line as usize).to_string();
+        let char_idx = pos.character as usize;
+
+        let start = line[..char_idx]
+            .rfind(|c: char| !c.is_alphanumeric() && c != '_')
+            .map(|i| i + 1)
+            .unwrap_or(0);
+        
+        let end = line[char_idx..]
+            .find(|c: char| !c.is_alphanumeric() && c != '_')
+            .map(|i| i + char_idx)
+            .unwrap_or(line.len());
+
+        (&line[start..end]).into()
     }
 }
 

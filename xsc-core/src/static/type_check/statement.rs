@@ -31,7 +31,9 @@ pub fn xs_tc_stmt(
     is_breakable: bool,
     is_continuable: bool,
 ) -> Result<(), Vec<Error>> { 
-    let doc = type_env.take_doc().and_then(|doc_str| Doc::parse(&doc_str));
+    let doc = type_env.take_doc()
+        .and_then(|doc_str| Doc::parse(&doc_str))
+        .unwrap_or(Doc::None);
 
 match stmt {
     AstNode::Comment((msg, _span)) => {
@@ -160,6 +162,9 @@ match stmt {
                     "Top level, {0}, or, {1} variable initializers must be literals or consts",
                     vec!["const", "static"],
                 ));
+            } else if *is_const {
+                let info = type_env.get_mut(name).expect("Value inserted above");
+                info.init = Some(expr.clone());
             }
         }
 
@@ -226,7 +231,7 @@ match stmt {
     },
     AstNode::RuleDef {
         name: (name, name_span),
-        rule_opts, // todo check for dups, add grp names
+        rule_opts,
         body: (body, body_span)
     } => {
         if !is_top_level {
@@ -278,7 +283,14 @@ match stmt {
                 ))
             }
             None => {
-                type_env.set_global(name, IdInfo::new(Type::Rule, SrcLoc::from(path, name_span), doc));
+                type_env.set_global(
+                    name,
+                    IdInfo::rule(
+                        SrcLoc::from(path, name_span),
+                        rule_opts.iter().map(|opt| opt.0.clone()).collect(),
+                        doc
+                    )
+                );
             }
         };
 
@@ -395,14 +407,14 @@ match stmt {
 
         let mut new_type_sign = params
             .iter()
-            .map(|param| param.type_.clone())
-            .collect::<Vec<Type>>();
-        new_type_sign.push(return_type.clone());
+            .map(|param| (param.name.0.clone(), param.type_.clone()))
+            .collect::<Vec<_>>();
+        new_type_sign.push(("return".into(), return_type.clone()));
 
         // Nested fns are not allowed. If someone has accidentally defined a nested fn, pretend it
         // exists in the global space, an error was already issued for this above.
         match type_env.get(name) {
-            Some(IdInfo{ type_: Type::Func {
+            Some(IdInfo{ type_: Type::Fn {
                 is_mutable: was_mutable,
                 type_sign
             }, src_loc: og_src_loc, .. }) => if !was_mutable {
@@ -421,9 +433,9 @@ match stmt {
                 ))
             } else {
                 type_env.set_global(name, IdInfo::new(
-                     Type::Func { is_mutable: *is_mutable, type_sign: new_type_sign },
-                     SrcLoc::from(path, name_span),
-                     None,
+                    Type::Fn { is_mutable: *is_mutable, type_sign: new_type_sign },
+                    SrcLoc::from(path, name_span),
+                    doc,
                 ))
             },
             Some(IdInfo { src_loc: og_src_loc, .. }) => {
@@ -436,7 +448,7 @@ match stmt {
             },
             _ => {
                 type_env.set_global(name, IdInfo::new(
-                    Type::Func { is_mutable: *is_mutable, type_sign: new_type_sign },
+                    Type::Fn { is_mutable: *is_mutable, type_sign: new_type_sign },
                     SrcLoc::from(path, name_span), doc
                 ))
             }
@@ -615,7 +627,7 @@ match stmt {
             type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));
         }
 
-        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), None));
+        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), doc));
         if let Some(type_) = xs_tc_expr(path, condition, type_env) {
             if type_ != Type::Bool {
                 type_env.add_err(path, XsError::type_mismatch(
@@ -869,7 +881,7 @@ match stmt {
             return Ok(());
         };
 
-        let (Type::Func { .. } | Type::Rule | Type::Class | Type::Label) = id_type else {
+        let (Type::Fn { .. } | Type::Rule | Type::Class | Type::Label) = id_type else {
             return Ok(());
         };
 

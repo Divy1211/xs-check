@@ -41,16 +41,16 @@ pub fn chk_int_lit(val: &i64, span: &Span) -> Vec<XsError> {
     }
 }
 
-pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XsError> {
+pub fn chk_num_lit((expr, span): &Spanned<Expr>, type_env: &TypeEnv, is_neg: bool, is_vec: bool) -> Vec<XsError> {
     match expr {
-        Expr::Neg(expr) => if is_neg {
+        Expr::Neg(expr) => if !is_neg {
+            chk_num_lit(expr, type_env, true, false)
+        } else {
             vec![XsError::syntax(
                 span,
                 "Unary negative ({0}) is only allowed before {1} literals",
                 vec!["-", "int | float"]
             )]
-        } else {
-            chk_num_lit(expr, true)
         }
         Expr::Literal(lit) => match lit {
             Literal::Int(val) => { chk_int_lit(val, span) }
@@ -72,11 +72,27 @@ pub fn chk_num_lit((expr, span): &Spanned<Expr>, is_neg: bool) -> Vec<XsError> {
                 )]
             }
         }
-        _ => {
+        _ => if is_vec {
+            let mut err = true;
+            if let Expr::Identifier(id) = &expr {
+                let Some(info) = type_env.get(id) else {
+                    return vec![XsError::undefined_name(id, span)];
+                };
+                err = info.type_ != Type::Float || !info.modifiers.is_const();
+            }
+            if !err {
+                return vec![];
+            }
             vec![XsError::syntax(
                 span,
-                "Only {0} literals are allowed in vector initialization. You may use the {1} function instead",
-                vec!["int | float", "xsVectorSet"]
+                "Only {0} constants or literals are allowed in vector initialization. You may use the {1} function instead",
+                vec!["float", "xsVectorSet"]
+            )]
+        } else {
+            vec![XsError::syntax(
+                span,
+                "Unary negative ({0}) is only allowed before {1} literals",
+                vec!["-", "int | float"]
             )]
         }
     }
@@ -114,6 +130,12 @@ pub fn arith_op(
 
         (Type::Str, _) | (_, Type::Str) if op_name == "add" => { Some(Type::Str) }
 
+        (Type::Vec, Type::Vec) if op_name == "add" => { Some(Type::Vec) }
+        (Type::Vec, Type::Vec) if op_name == "subtract" => { Some(Type::Vec) }
+
+        (Type::Vec, Type::Float | Type::Int) | (Type::Float | Type::Int, Type::Vec) if op_name == "multiply" => { Some(Type::Vec) }
+        (Type::Vec, Type::Float | Type::Int) if op_name == "divide" => { Some(Type::Vec) }
+        
         (type1, type2) => {
             type_env.add_err(path, XsError::op_mismatch(
                 op_name,

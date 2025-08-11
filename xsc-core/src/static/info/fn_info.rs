@@ -7,13 +7,17 @@ use crate::r#static::info::src_loc::SrcLoc;
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
 pub struct FnInfo {
-    identifiers: HashMap<Identifier, IdInfo>,
-    src_loc: SrcLoc
+    pub identifiers: HashMap<Identifier, IdInfo>,
+    pub src_loc: SrcLoc
 }
 
 impl FnInfo {
     pub fn new(src_loc: SrcLoc) -> Self {
         Self { identifiers: HashMap::new(), src_loc }
+    }
+
+    pub fn get_mut(&mut self, id: &Identifier) -> Option<&mut IdInfo> {
+        self.identifiers.get_mut(id)
     }
     
     pub fn get(&self, id: &Identifier) -> Option<&IdInfo> {

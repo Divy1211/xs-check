@@ -15,8 +15,8 @@ impl Modifiers {
         Modifiers::Var { is_static, is_const, is_extern }
     }
 
-    pub fn rule(rule_opts: &Vec<RuleOpt>) -> Self {
-        Modifiers::Rule { rule_opts: rule_opts.clone() }
+    pub fn rule(rule_opts: Vec<RuleOpt>) -> Self {
+        Modifiers::Rule { rule_opts }
     }
     
     pub fn is_const(&self) -> bool {
@@ -37,6 +37,13 @@ impl Modifiers {
         match self {
             Modifiers::Var { is_static, .. } => *is_static,
             _ => false,
+        }
+    }
+    
+    pub fn get_rule_opts(&self) -> Option<&Vec<RuleOpt>> {
+        match self {
+            Modifiers::Rule { rule_opts } => Some(rule_opts),
+            _ => None,
         }
     }
 }

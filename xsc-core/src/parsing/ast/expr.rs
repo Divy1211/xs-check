@@ -35,3 +35,24 @@ pub enum Expr {
     
     Or(Box<Spanned<Expr>>, Box<Spanned<Expr>>),
 }
+
+impl Expr {
+    pub fn lit_str(&self) -> Option<String> {
+        Some(match self {
+            Expr::Literal(lit) => format!("{}", lit),
+            Expr::Identifier(id) => format!("{}", id),
+            Expr::Vec { x, y, z } => {
+                format!("vector({}, {}, {})", render(x), render(y), render(z))
+            }
+            Expr::Neg(lit) => {
+                format!("-{}", render(lit))
+            }
+            _ => return None,
+        })
+    }
+}
+
+fn render(v: &Box<Spanned<Expr>>) -> String {
+    let (v, _span) = v.as_ref();
+    v.lit_str().unwrap_or("???".into())
+}
