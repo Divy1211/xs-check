@@ -22,7 +22,10 @@ pub fn xs_errs_to_diags(
             if ignores.contains(&err.code()) {
                 continue;
             }
-            let (err_uri, src) = &*editors.get(path).expect("Called after cache and do_lint");
+            let Some(entry) = editors.get(path) else {
+                continue;
+            };
+            let (err_uri, src) = entry.value();
             if err_uri != uri {
                 continue;
             }
@@ -147,8 +150,10 @@ pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &SrcCache) -> 
     for err in errs {
         match err {
             Error::FileErr(path, msg) => {
-                let (err_uri, src) = &*editors.get(path)
-                    .expect("Cached before do_lint & parse_errs_to_diags");
+                let Some(entry) = editors.get(path) else {
+                    continue;
+                };
+                let (err_uri, src) = entry.value();
                 if err_uri != uri {
                     continue
                 }
@@ -171,7 +176,10 @@ pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &SrcCache) -> 
                 });
             }
             Error::ParseErrs { path, errs, .. } => {
-                let (err_uri, src) = &*editors.get(path).expect("Infallible");
+                let Some(entry) = editors.get(path) else {
+                    continue;
+                };
+                let (err_uri, src) = entry.value();
                 if err_uri != uri {
                     continue
                 }

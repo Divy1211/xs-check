@@ -65,17 +65,20 @@ impl Backend {
         
         let path = path_from_uri(&uri);
         let (_uri, src) = &*self.editors.get(&path).expect("Cached before do_lint");
-        
-        let diags = match gen_errs_from_src(
+
+        let mut parse_errs = match gen_errs_from_src(
             &path, &src.to_string(),
             &mut type_env,
             &self.ast_cache,
             &self.editors
         ) {
-            Ok(()) => xs_errs_to_diags(&uri, &type_env.errs, &self.editors, &config.ignores),
+            Ok(()) => vec![],
             Err(errs) => parse_errs_to_diags(&uri, &errs, &self.editors),
         };
 
+        let mut diags = xs_errs_to_diags(&uri, &type_env.errs, &self.editors, &config.ignores);
+        diags.append(&mut parse_errs);
+        
         let deps = type_env.dependencies.take().expect("New type-env created above");
         self.dependencies.insert(path.clone(), deps.into_values().into_iter().flatten().collect());
 

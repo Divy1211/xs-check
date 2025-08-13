@@ -147,13 +147,11 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         let path = path_from_uri(&uri);
 
-        let entry = self.editors.get(&path).expect("Cached before hover");
-        let (_url, src) = entry.value();
+        let (_url, src) = &*self.editors.get(&path).expect("Cached before hover");
         let id = self.get_id(src, &pos);
         let span = span_from_pos(src, &pos, &pos);
         
-        let entry = self.env_cache.get(&path).expect("Cached before hover");
-        let env = entry.value();
+        let env = &*self.env_cache.get(&path).expect("Cached before hover");
         
         let info = env.identifiers.get(&id)
             .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
@@ -188,13 +186,11 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position.position;
         let path = path_from_uri(&uri);
 
-        let entry = self.editors.get(&path).expect("Cached before completion");
-        let (_url, src) = entry.value();
+        let (_url, src) = &*self.editors.get(&path).expect("Cached before completion");
         let prefix = self.get_prefix(src, &pos);
         let span = span_from_pos(src, &pos, &pos);
 
-        let entry = self.env_cache.get(&path).expect("Cached before completion");
-        let env = entry.value();
+        let env = &*self.env_cache.get(&path).expect("Cached before completion");
         
         let ids = env.local_ids(&path, &span)
             .map(|ids| ids.iter())
