@@ -27,19 +27,21 @@ pub fn xs_tc_stmt(
     type_env: &mut TypeEnv,
     ast_cache: AstCacheRef,
     src_cache: SrcCacheRef,
+    comments: &Vec<Spanned<String>>,
+    comment_pos: &mut usize,
     is_top_level: bool,
     is_breakable: bool,
     is_continuable: bool,
-) -> Result<(), Vec<Error>> { 
-    let doc = type_env.take_doc()
-        .and_then(|doc_str| Doc::parse(&doc_str))
-        .unwrap_or(Doc::None);
+) -> Result<(), Vec<Error>> {
+    let doc = match comments.get(*comment_pos) {
+        Some((com, com_span)) if com_span.end <= span.start => {
+            *comment_pos += 1;
+            Doc::parse(com)
+        }
+        _ => Doc::None,
+    };
 
 match stmt {
-    AstNode::Comment((msg, _span)) => {
-        type_env.set_doc(msg);
-        Ok(())
-    },
     AstNode::Error => { Ok(()) },
     // an include statement is always parsed with a string literal
     AstNode::Include((filename, _span)) => {
@@ -306,7 +308,7 @@ match stmt {
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -457,7 +459,7 @@ match stmt {
         let results = combine_results(body.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -547,7 +549,7 @@ match stmt {
         let results = consequent.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -561,7 +563,7 @@ match stmt {
         combine_results(results.into_iter().chain(alternate.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, is_breakable, is_continuable,
                 )
             })
@@ -590,7 +592,7 @@ match stmt {
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, true, true,
                 )
             })
@@ -642,7 +644,7 @@ match stmt {
         combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
-                    path, spanned_stmt, type_env, ast_cache, src_cache,
+                    path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, true, true,
                 )
             })
@@ -672,7 +674,7 @@ match stmt {
             results.push(combine_results(body.iter()
                 .map(|spanned_stmt| {
                     xs_tc_stmt(
-                        path, spanned_stmt, type_env, ast_cache, src_cache,
+                        path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                         false, true, is_continuable,
                     )
                 })

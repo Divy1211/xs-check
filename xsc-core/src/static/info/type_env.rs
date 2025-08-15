@@ -110,8 +110,8 @@ impl TypeEnv {
             .push(fn_env);
     }
 
-    pub fn set_doc(&mut self, doc: &String) {
-        self.current_doc = Some(doc.clone());
+    pub fn set_doc(&mut self, doc: String) {
+        self.current_doc = Some(doc);
     }
 
     pub fn take_doc(&mut self) -> Option<String> {

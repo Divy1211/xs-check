@@ -40,7 +40,7 @@ use crate::parsing::span::Spanned;
 
 pub use types::*;
 
-pub type AstInfo = (Option<Hash>, Vec<Spanned<AstNode>>);
+pub type AstInfo = (Option<Hash>, (Vec<Spanned<AstNode>>, Vec<Spanned<String>>));
 
 pub type AstCache = AstMap<PathBuf, AstInfo>;
 

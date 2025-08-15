@@ -10,9 +10,9 @@ pub enum Doc {
 }
 
 impl Doc {
-    pub fn parse(comment: &str) -> Option<Doc> {
+    pub fn parse(comment: &str) -> Doc {
         if !comment.trim_start().starts_with("/**") {
-            return None;
+            return Doc::None;
         }
         
         let content = comment
@@ -81,9 +81,9 @@ impl Doc {
         let returns = return_lines.join("\n").trim().to_string();
 
         if !params.is_empty() || !returns.is_empty() {
-            Some(Doc::FnDesc { desc, params, returns })
+            Doc::FnDesc { desc, params, returns }
         } else {
-            Some(Doc::Desc(desc))
+            Doc::Desc(desc)
         }
     }
     

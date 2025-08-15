@@ -173,7 +173,7 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri;
         let path = path_from_uri(&uri);
         let (_uri, src) = &*self.editors.get(&path).expect("Cached before semantic_tokens_full");
-        let (_hash, ast) = &*self.ast_cache.get(&path).expect("Cached before semantic_tokens_full");
+        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before semantic_tokens_full");
 
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
             result_id: None,

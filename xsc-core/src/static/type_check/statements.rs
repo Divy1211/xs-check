@@ -12,11 +12,13 @@ pub fn xs_tc(
     type_env: &mut TypeEnv,
     ast_cache: AstCacheRef,
     src_cache: SrcCacheRef,
+    comments: &Vec<Spanned<String>>,
 ) -> Result<(), Vec<Error>> {
+    let mut comment_pos = 0;
     combine_results(stmts.iter()
         .map(|stmt| {
             xs_tc_stmt(
-                path, stmt, type_env, ast_cache, src_cache,
+                path, stmt, type_env, ast_cache, src_cache, comments, &mut comment_pos,
                 true, false, false,
         )})
     )

@@ -15,7 +15,6 @@ fn xs_toks(
     toks: &mut Vec<XsToken>,
     info: &mut SemanticInfo,
 ) { match node {
-    AstNode::Comment(_) => {}
     AstNode::Error => {}
     AstNode::Include(_) => {}
     AstNode::VarDef {

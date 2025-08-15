@@ -1,7 +1,10 @@
 int b = 10;
-int a = 10;
 
 void main() {
-    int d = 10;
-    int e = 20;
+    int a = 10;
+    switch (a /* test */ ) {
+        case 1 : {
+            //code
+        }
+    }
 }

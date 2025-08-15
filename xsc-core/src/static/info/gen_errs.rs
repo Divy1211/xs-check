@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 use chumsky::input::Input;
 use chumsky::Parser;
-use crate::parsing::lexer::{lexer};
+use crate::parsing::lexer::{lexer, Token};
 use crate::parsing::parser::parser;
 use crate::r#static::info::{AstCacheRef, Error, ParseError, SrcCacheRef, TypeEnv};
 use crate::r#static::type_check::xs_tc;
@@ -56,22 +56,20 @@ pub fn gen_errs_from_src(
         .into_output_errors();
     
     let hash = blake3::hash(src.as_bytes());
-    if let Some((prev_hash, ast)) = pop(ast_cache, path) {
+    if let Some((prev_hash, (ast, comments))) = pop(ast_cache, path) {
         let Some(prev_hash) = prev_hash else {
             return Err(vec![Error::FileErr(
                 path.clone(), format!("Circular dependency detected while parsing '{}'", path.display())
             )])
         };
-        ast_cache.insert(path.clone(), (None, vec![]));
+        ast_cache.insert(path.clone(), (None, (vec![], vec![])));
         if hash == prev_hash {
-            let r = xs_tc(path, &ast, type_env, ast_cache, src_cache);
-            ast_cache.insert(path.clone(), (Some(hash), ast));
-            return r;
+            return xs_tc(path, &ast, type_env, ast_cache, src_cache, &comments);
         }
     };
     
     let Some(tokens) = tokens else {
-        ast_cache.insert(path.clone(), (Some(hash), vec![]));
+        ast_cache.insert(path.clone(), (Some(hash), (vec![], vec![])));
         return Err(vec![Error::parse_errs(
             path,
             errs.iter()
@@ -80,17 +78,22 @@ pub fn gen_errs_from_src(
         )]);
     };
 
-    // tokens = tokens.into_iter()
-    //     .filter(|tok| match tok { (Token::Comment(_), _) => { false }, _ => { true } })
-    //     .collect();
-
+    let (tokens, comments) = tokens.into_iter()
+        .partition::<Vec<_>, _>(|tok| !tok.0.is_comment());
+    
+    let comments = comments.into_iter()
+        .map(|(val, span)| match val {
+            Token::Comment(msg) => (msg, span),
+            _ => unreachable!(),
+        }).collect();
+    
     let (ast, errs) = parser()
         .map_with(|ast, e| (ast, e.span()))
         .parse(tokens.as_slice().spanned((src.len()..src.len()).into()))
         .into_output_errors();
 
     let Some((ast, _span)) = ast else {
-        ast_cache.insert(path.clone(), (Some(hash), vec![]));
+        ast_cache.insert(path.clone(), (Some(hash), (vec![], vec![])));
         return Err(vec![Error::parse_errs(
             path,
             errs.iter()
@@ -99,8 +102,8 @@ pub fn gen_errs_from_src(
         )]);
     };
 
-    ast_cache.insert(path.clone(), (None, vec![]));
-    let r = xs_tc(path, &ast, type_env, ast_cache, src_cache);
-    ast_cache.insert(path.clone(), (Some(hash), ast));
+    ast_cache.insert(path.clone(), (None, (vec![], vec![])));
+    let r = xs_tc(path, &ast, type_env, ast_cache, src_cache, &comments);
+    ast_cache.insert(path.clone(), (Some(hash), (ast, comments)));
     r
 }

@@ -79,6 +79,15 @@ pub enum Token {
     Class,
 }
 
+impl Token {
+    pub fn is_comment(&self) -> bool {
+        match self {
+            Token::Comment(_) => true,
+            _ => false,
+        }
+    }
+}
+
 impl Display for Token {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {

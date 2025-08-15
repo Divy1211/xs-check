@@ -35,7 +35,6 @@ impl RuleOpt {
 
 #[derive(Debug, Clone)]
 pub enum AstNode {
-    Comment(Spanned<String>),
     Error,
     Include(Spanned<String>),
     VarDef {
