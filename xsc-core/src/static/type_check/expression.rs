@@ -36,6 +36,9 @@ pub fn xs_tc_expr(
     Expr::FnCall { name: (name, name_span), args } => {
         let Some(IdInfo { type_, .. }) = type_env.get(name) else {
             type_env.add_err(path, XsError::undefined_name(name, name_span));
+            for arg in args {
+                xs_tc_expr(path, arg, type_env);
+            }
             return None;
         };
         let Type::Fn { type_sign, .. } = type_ else {
@@ -44,6 +47,9 @@ pub fn xs_tc_expr(
                 &type_.to_string(),
                 name_span,
             ));
+            for arg in args {
+                xs_tc_expr(path, arg, type_env);
+            }
             return None;
         };
         for (param_type, arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
