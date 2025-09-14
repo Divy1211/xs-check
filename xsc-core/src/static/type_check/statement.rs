@@ -33,13 +33,15 @@ pub fn xs_tc_stmt(
     is_breakable: bool,
     is_continuable: bool,
 ) -> Result<(), Vec<Error>> {
-    let doc = match comments.get(*comment_pos) {
+    let mut docstr = None;
+    loop { match comments.get(*comment_pos) {
         Some((com, com_span)) if com_span.end <= span.start => {
             *comment_pos += 1;
-            Doc::parse(com)
+            docstr = Some(com)
         }
-        _ => Doc::None,
-    };
+        _ => break,
+    }};
+    let doc = docstr.map(|com| Doc::parse(&com)).unwrap_or(Doc::None);
 
 match stmt {
     AstNode::Error => { Ok(()) },

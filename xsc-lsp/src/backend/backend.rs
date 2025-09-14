@@ -106,9 +106,6 @@ impl Backend {
     }
     
     pub async fn build_prelude_env(&self, refresh: bool) {
-        if self.prelude_env.get().is_some() && !refresh {
-            return;
-        }
         self.load_config(refresh).await;
 
         let config = self.config
@@ -117,6 +114,10 @@ impl Backend {
             .read()
             .await;
 
+        if self.prelude_env.get().is_some() && !refresh {
+            return;
+        }
+        
         let mut type_env = TypeEnv::new(config.include_dirs.clone());
 
         let prelude_path = PathBuf::from(r"prelude.xs");
@@ -133,15 +134,6 @@ impl Backend {
             let mut prelude_env = self.prelude_env.get().expect("Initialized").write().await;
             *prelude_env = type_env;
         }
-    }
-    
-    pub fn get_prefix(&self, src: &Rope, pos: &Position) -> String {
-        src.line(pos.line as usize)
-            .to_string()
-            .split_whitespace()
-            .last()
-            .expect("Auto complete triggered on typing")
-            .to_string()
     }
 
     pub fn get_id(&self, src: &Rope, pos: &Position) -> Identifier {

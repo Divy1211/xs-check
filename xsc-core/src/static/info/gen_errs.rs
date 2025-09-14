@@ -5,11 +5,12 @@ use std::path::PathBuf;
 
 use chumsky::input::Input;
 use chumsky::Parser;
+
 use crate::parsing::lexer::{lexer, Token};
 use crate::parsing::parser::parser;
 use crate::r#static::info::{AstCacheRef, Error, ParseError, SrcCacheRef, TypeEnv};
 use crate::r#static::type_check::xs_tc;
-use crate::utils::pop;
+use crate::utils::{pop};
 
 pub fn gen_errs_from_path(
     path: &PathBuf,
@@ -64,7 +65,9 @@ pub fn gen_errs_from_src(
         };
         ast_cache.insert(path.clone(), (None, (vec![], vec![])));
         if hash == prev_hash {
-            return xs_tc(path, &ast, type_env, ast_cache, src_cache, &comments);
+            let r = xs_tc(path, &ast, type_env, ast_cache, src_cache, &comments);
+            ast_cache.insert(path.clone(), (Some(hash), (ast, comments)));
+            return r
         }
     };
     

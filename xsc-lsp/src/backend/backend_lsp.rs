@@ -12,6 +12,7 @@ use tower_lsp::lsp_types::{
     DidChangeTextDocumentParams,
     DidCloseTextDocumentParams,
     DidOpenTextDocumentParams,
+    Documentation,
     Hover,
     HoverContents,
     HoverParams,
@@ -19,6 +20,7 @@ use tower_lsp::lsp_types::{
     InitializeParams,
     InitializeResult,
     InitializedParams,
+    InsertTextFormat,
     MarkupContent,
     MarkupKind,
     SemanticTokens,
@@ -187,7 +189,7 @@ impl LanguageServer for Backend {
         let path = path_from_uri(&uri);
 
         let (_url, src) = &*self.editors.get(&path).expect("Cached before completion");
-        let prefix = self.get_prefix(src, &pos);
+        let prefix = self.get_id(src, &pos).0;
         let span = span_from_pos(src, &pos, &pos);
 
         let env = &*self.env_cache.get(&path).expect("Cached before completion");
@@ -198,20 +200,26 @@ impl LanguageServer for Backend {
             .chain(env.identifiers.iter())
             .filter(|(id, _info)| id.0.starts_with(&prefix))
             .map(|(id, info)| {
-                let kind = match info.type_ {
+                let (kind, insert_text) = match info.type_ {
                     Type::Int | Type::Float | Type::Bool | Type::Str | Type::Vec => {
-                        CompletionItemKind::VARIABLE
+                        (CompletionItemKind::VARIABLE, None)
                     }
-                    Type::Rule | Type::Fn { .. } => { CompletionItemKind::FUNCTION }
-                    _ => { CompletionItemKind::TEXT }
+                    Type::Rule | Type::Fn { .. } => {
+                        (CompletionItemKind::FUNCTION, Some(format!("{}($0)", id.0.clone())))
+                    }
+                    _ => { (CompletionItemKind::TEXT, None) }
                 };
-
+                
                 CompletionItem {
                     label: id.0.clone(),
                     kind: Some(kind),
                     detail: Some(format!("{}", info.type_)),
-                    insert_text: None,
-                    documentation: None,
+                    insert_text,
+                    insert_text_format: Some(InsertTextFormat::SNIPPET),
+                    documentation: Some(Documentation::MarkupContent(MarkupContent {
+                        kind: MarkupKind::Markdown,
+                        value: info.doc.render(&id, &info),
+                    })),
                     deprecated: None,
                     ..Default::default()
                 }

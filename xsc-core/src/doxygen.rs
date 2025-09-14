@@ -10,6 +10,13 @@ pub enum Doc {
 }
 
 impl Doc {
+    pub fn is_none(&self) -> bool {
+        match self {
+            Doc::None => true,
+            _ => false,
+        }
+    }
+    
     pub fn parse(comment: &str) -> Doc {
         if !comment.trim_start().starts_with("/**") {
             return Doc::None;
