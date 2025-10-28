@@ -8,7 +8,7 @@ use tower_lsp::lsp_types::{MessageType, Position, Url};
 use tower_lsp::Client;
 
 use xsc_core::parsing::ast::Identifier;
-use xsc_core::r#static::info::{gen_errs_from_src, AstCache, AstMap, TypeEnv};
+use xsc_core::r#static::info::{gen_errs_from_path, gen_errs_from_src, AstCache, AstMap, TypeEnv};
 
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
@@ -99,7 +99,7 @@ impl Backend {
                 *config = new_config;
             }
             Err(err) => {
-                self.client.show_message(MessageType::ERROR, format!("Failed to load config: {}", err)).await;
+                self.client.show_message(MessageType::ERROR, format!("XSC: Failed to load config: {}", err)).await;
                 return;
             }
         }
@@ -126,7 +126,20 @@ impl Backend {
         gen_errs_from_src(&prelude_path, prelude, &mut type_env, &self.ast_cache, &self.editors)
             .expect("Prelude can't produce parse errors");
 
-        // todo: extra prelude
+        if let Some(extra_prelude_path) = config.extra_prelude_path.as_ref() { 'extra: {
+            let path = PathBuf::from(extra_prelude_path);
+            if !path.is_file() {
+                self.client.show_message(MessageType::ERROR, "XSC: Extra prelude file not found".to_string()).await;
+                break 'extra;
+            }
+            let result = gen_errs_from_path(extra_prelude_path, &mut type_env, &self.ast_cache, &self.editors);
+            let err_count = type_env.errs.get(&path).map_or(0, |errs| {
+                errs.iter().filter(|err| !err.is_warning()).count()
+            });
+            if result.is_err() || err_count > 0 {
+                self.client.show_message(MessageType::ERROR, "XSC: Errors found in the extra prelude file".to_string()).await;
+            }
+        }}
 
         if self.prelude_env.get().is_none() {
             self.prelude_env.set(RwLock::from(type_env)).expect("Called with true in initialized");

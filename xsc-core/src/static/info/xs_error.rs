@@ -151,6 +151,13 @@ impl XsError {
         }
     }
 
+    pub fn is_warning(&self) -> bool {
+        match self {
+            XsError::Warning { .. } => true,
+            _ => false,
+        }
+    }
+    
     pub fn code(&self) -> u32 {
         match self {
             XsError::ExtraArg { .. } => { 0 }
