@@ -20,7 +20,7 @@ pub enum XsError {
     
     Syntax { span: Span, msg: String, keywords: Vec<String> },
 
-    Warning { span: Span, msg: String, keywords: Vec<String>, kind: WarningKind },
+    Warning { span: Span, msg: String, keywords: Vec<String>, kind: WarningKind, ignored: bool },
 }
 
 #[derive(Debug, Clone)]
@@ -35,6 +35,8 @@ pub enum WarningKind {
     BoolCaseSilentCrash = 107,
     NumDownCast = 108,
     NoNumPromo = 109,
+
+    UnknownWarningName = 1000,
 }
 
 impl XsError {
@@ -109,6 +111,7 @@ impl XsError {
             msg: String::from(msg),
             keywords: keywords.into_iter().map(String::from).collect(),
             kind,
+            ignored: false,
         }
     }
 
@@ -158,6 +161,13 @@ impl XsError {
         }
     }
     
+    pub fn is_ignored(&self) -> bool {
+        match self {
+            XsError::Warning { ignored, .. } => *ignored,
+            _ => false,
+        }
+    }
+    
     pub fn code(&self) -> u32 {
         match self {
             XsError::ExtraArg { .. } => { 0 }
@@ -190,6 +200,7 @@ impl WarningKind {
             WarningKind::BoolCaseSilentCrash => { "BoolCaseSilentCrash" }
             WarningKind::NumDownCast => { "NumDownCast" }
             WarningKind::NoNumPromo => { "NoNumPromo" }
+            WarningKind::UnknownWarningName => { "UnknownWarningName" }
         }
     }
 
@@ -205,6 +216,8 @@ impl WarningKind {
             "BoolCaseSilentCrash" => { Some(WarningKind::BoolCaseSilentCrash) }
             "NumDownCast" => { Some(WarningKind::NumDownCast) }
             "NoNumPromo" => { Some(WarningKind::NoNumPromo) }
+            
+            // UnknownWarningName cannot be ignored, so it is exlcuded here
             _ => None
         }
     }

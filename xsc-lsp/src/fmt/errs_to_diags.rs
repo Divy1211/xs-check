@@ -19,7 +19,7 @@ pub fn xs_errs_to_diags(
 
     for (path, errs) in errs {
         for err in errs {
-            if ignores.contains(&err.code()) {
+            if ignores.contains(&err.code()) || err.is_ignored() {
                 continue;
             }
             let Some(entry) = editors.get(path) else {
@@ -112,7 +112,7 @@ pub fn xs_errs_to_diags(
                         span
                     )
                 }
-                XsError::Warning { span, msg, keywords, kind } => {
+                XsError::Warning { span, msg, keywords, kind, .. } => {
                     severity = DiagnosticSeverity::WARNING;
                     (
                         kind.as_str(),

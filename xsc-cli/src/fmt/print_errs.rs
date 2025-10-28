@@ -18,7 +18,7 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XsError>, ignores: &HashSet<u32>
 
     let mut found_errs = false;
     for error in errs.iter() {
-        if ignores.contains(&error.code()) {
+        if ignores.contains(&error.code()) || error.is_ignored() {
             continue;
         }
         found_errs = true;

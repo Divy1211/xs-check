@@ -1,10 +1,12 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::parsing::ast::{Identifier, Type};
-use crate::r#static::info::IdInfo;
+use crate::r#static::info::{IdInfo};
+use crate::utils::warnings_from_str;
 
 #[derive(Debug, Clone)]
 pub enum Doc {
     None,
+    Ignore(HashSet<u32>),
     Desc(String),
     FnDesc { desc: String, params: HashMap<Identifier, (usize, String)>, returns: String },
 }
@@ -17,9 +19,14 @@ impl Doc {
         }
     }
     
-    pub fn parse(comment: &str) -> Doc {
-        if !comment.trim_start().starts_with("/**") {
-            return Doc::None;
+    pub fn  parse(comment: &str) -> Result<Doc, &str> {
+        let comment = comment.trim_start();
+        if comment.starts_with("// xsc-ignore: ") {
+            let comment = comment.trim_start_matches("// xsc-ignore: ");
+            return Ok(Doc::Ignore(warnings_from_str(comment)?));
+        }
+        if !comment.starts_with("/**") {
+            return Ok(Doc::None);
         }
         
         let content = comment
@@ -88,9 +95,9 @@ impl Doc {
         let returns = return_lines.join("\n").trim().to_string();
 
         if !params.is_empty() || !returns.is_empty() {
-            Doc::FnDesc { desc, params, returns }
+            Ok(Doc::FnDesc { desc, params, returns })
         } else {
-            Doc::Desc(desc)
+            Ok(Doc::Desc(desc))
         }
     }
     
@@ -139,7 +146,7 @@ impl Doc {
         }};
         
         match self {
-            Doc::None => sign,
+            Doc::None | Doc::Ignore(_) => sign,
             Doc::Desc(desc) => {
                 format!("{}\n\n{}", sign, desc.clone())
             },

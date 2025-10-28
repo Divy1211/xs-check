@@ -37,11 +37,29 @@ pub fn xs_tc_stmt(
     loop { match comments.get(*comment_pos) {
         Some((com, com_span)) if com_span.end <= span.start => {
             *comment_pos += 1;
-            docstr = Some(com)
+            docstr = Some((com, com_span));
         }
         _ => break,
     }};
-    let doc = docstr.map(|com| Doc::parse(&com)).unwrap_or(Doc::None);
+    let (doc, _temp_ignore) = docstr
+        .map(|(com, span)| {
+            match Doc::parse(&com) {
+                Err(err) => {
+                    type_env.add_err(path, XsError::warning(
+                        span,
+                        &format!("Unrecognised warning name '{}'", err),
+                        vec![],
+                        WarningKind::UnknownWarningName,
+                    ));
+                    (Doc::None, None)
+                }
+                Ok(Doc::Ignore(ignores)) => {
+                    (Doc::None, Some(type_env.temp_ignore(ignores)))
+                }
+                Ok(doc) => (doc, None)
+            }
+        })
+        .unwrap_or((Doc::None, None));
 
 match stmt {
     AstNode::Error => { Ok(()) },
@@ -68,6 +86,7 @@ match stmt {
             inc_path.push(&filename[1..(filename.len()-1)]);
             if inc_path.is_file() {
                 deps.push(inc_path.clone());
+                drop(_temp_ignore);
                 result = Some(gen_errs_from_path(&inc_path, type_env, ast_cache, src_cache));
                 break
             }
