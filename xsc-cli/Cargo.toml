@@ -1,6 +1,6 @@
 [package]
 name = "xsc-cli"
-version = "0.2.15"
+version = "0.2.16"
 authors = ["Alian713"]
 edition = "2021"
 description = "A linter for AoE2:DE's flavour of XS"

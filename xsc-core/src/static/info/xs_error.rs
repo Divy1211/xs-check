@@ -129,7 +129,7 @@ impl XsError {
         }
     }
 
-    pub fn report_kind(&self) -> ReportKind {
+    pub fn report_kind(&self) -> ReportKind<'_> {
         match self {
             XsError::Warning { .. } => { ReportKind::Warning }
             _ => { ReportKind::Error }
