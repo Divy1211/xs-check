@@ -43,7 +43,7 @@ impl XsError {
     pub fn extra_arg(fn_name: &str, span: &Span) -> XsError {
         XsError::ExtraArg {
             fn_name: String::from(fn_name),
-            span: span.clone(),
+            span: *span,
         }
     }
 
@@ -51,7 +51,7 @@ impl XsError {
         XsError::TypeMismatch {
             actual: String::from(actual),
             expected: String::from(expected),
-            span: span.clone(),
+            span: *span,
             note: note.map(String::from),
         }
     }
@@ -60,7 +60,7 @@ impl XsError {
         XsError::NotCallable {
             name: String::from(&name.0),
             actual: String::from(actual),
-            span: span.clone(),
+            span: *span,
         }
     }
 
@@ -69,7 +69,7 @@ impl XsError {
             op: String::from(op),
             type1: String::from(type1),
             type2: String::from(type2),
-            span: span.clone(),
+            span: *span,
             note: note.map(String::from),
         }
     }
@@ -77,29 +77,29 @@ impl XsError {
     pub fn undefined_name(name: &Identifier, span: &Span) -> XsError {
         XsError::UndefinedName {
             name: String::from(&name.0),
-            span: span.clone(),
+            span: *span,
         }
     }
 
     pub fn redefined_name(name: &Identifier, span: &Span, og_src_loc: &SrcLoc, note: Option<&str>) -> XsError {
         XsError::RedefinedName {
             name: String::from(&name.0),
-            span: span.clone(),
+            span: *span,
             og_src_loc: og_src_loc.clone(),
             note: note.map(String::from),
         }
     }
 
-    pub fn unresolved_include(inc_filename: &String, span: &Span) -> XsError {
+    pub fn unresolved_include(inc_filename: &str, span: &Span) -> XsError {
         XsError::UnresolvedInclude {
-            inc_filename: inc_filename.clone(),
-            span: span.clone(),
+            inc_filename: inc_filename.into(),
+            span: *span,
         }
     }
     
     pub fn syntax(span: &Span, msg: &str, keywords: Vec<&str>) -> XsError {
         XsError::Syntax {
-            span: span.clone(),
+            span: *span,
             msg: String::from(msg),
             keywords: keywords.into_iter().map(String::from).collect(),
         }
@@ -107,7 +107,7 @@ impl XsError {
 
     pub fn warning(span: &Span, msg: &str, keywords: Vec<&str>, kind: WarningKind) -> XsError {
         XsError::Warning {
-            span: span.clone(),
+            span: *span,
             msg: String::from(msg),
             keywords: keywords.into_iter().map(String::from).collect(),
             kind,
@@ -155,10 +155,7 @@ impl XsError {
     }
 
     pub fn is_warning(&self) -> bool {
-        match self {
-            XsError::Warning { .. } => true,
-            _ => false,
-        }
+        matches!(self, XsError::Warning { .. })
     }
     
     pub fn is_ignored(&self) -> bool {
@@ -204,21 +201,21 @@ impl WarningKind {
         }
     }
 
-    pub fn from_str(name: &str) -> Option<WarningKind> {
+    pub fn from_name(name: &str) -> Option<WarningKind> {
         match name {
-            "TopStrInit" => { Some(WarningKind::TopStrInit) }
-            "DupCase" => { Some(WarningKind::DupCase) }
-            "DiscardedFn" => { Some(WarningKind::DiscardedFn) }
-            "BreakPt" => { Some(WarningKind::BreakPt) }
-            "UnusableClasses" => { Some(WarningKind::UnusableClasses) }
-            "FirstOprArith" => { Some(WarningKind::FirstOprArith) }
-            "CmpSilentCrash" => { Some(WarningKind::CmpSilentCrash) }
+            "TopStrInit"          => { Some(WarningKind::TopStrInit) }
+            "DupCase"             => { Some(WarningKind::DupCase) }
+            "DiscardedFn"         => { Some(WarningKind::DiscardedFn) }
+            "BreakPt"             => { Some(WarningKind::BreakPt) }
+            "UnusableClasses"     => { Some(WarningKind::UnusableClasses) }
+            "FirstOprArith"       => { Some(WarningKind::FirstOprArith) }
+            "CmpSilentCrash"      => { Some(WarningKind::CmpSilentCrash) }
             "BoolCaseSilentCrash" => { Some(WarningKind::BoolCaseSilentCrash) }
-            "NumDownCast" => { Some(WarningKind::NumDownCast) }
-            "NoNumPromo" => { Some(WarningKind::NoNumPromo) }
+            "NumDownCast"         => { Some(WarningKind::NumDownCast) }
+            "NoNumPromo"          => { Some(WarningKind::NoNumPromo) }
             
             // UnknownWarningName cannot be ignored, so it is exlcuded here
-            _ => None
+            _                     => None
         }
     }
 }
