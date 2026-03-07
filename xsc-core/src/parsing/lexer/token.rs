@@ -81,10 +81,7 @@ pub enum Token {
 
 impl Token {
     pub fn is_comment(&self) -> bool {
-        match self {
-            Token::Comment(_) => true,
-            _ => false,
-        }
+        matches!(self, Token::Comment(_))
     }
 }
 
