@@ -21,6 +21,7 @@ use crate::r#static::info::{
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
 
+#[allow(clippy::too_many_arguments)]
 pub fn xs_tc_stmt(
     path: &PathBuf,
     (stmt, span): &Spanned<AstNode>,
@@ -43,7 +44,7 @@ pub fn xs_tc_stmt(
     }};
     let (doc, _temp_ignore) = docstr
         .map(|(com, span)| {
-            match Doc::parse(&com) {
+            match Doc::parse(com) {
                 Err(err) => {
                     type_env.add_err(path, XsError::warning(
                         span,
@@ -824,17 +825,14 @@ match stmt {
             ));
         }
 
-        match type_env.get(id) {
-            Some(IdInfo { src_loc: og_src_loc, .. }) => {
-                type_env.add_err(path, XsError::redefined_name(
-                    id,
-                    id_span,
-                    &og_src_loc,
-                    None,
-                ));
-                return Ok(());
-            }
-            _ => {}
+        if let Some(IdInfo { src_loc: og_src_loc, .. }) = type_env.get(id) {
+            type_env.add_err(path, XsError::redefined_name(
+                id,
+                id_span,
+                &og_src_loc,
+                None,
+            ));
+            return Ok(());
         };
         type_env.set(id, IdInfo::new(Type::Label, SrcLoc::from(path, id_span), doc));
 
@@ -867,7 +865,7 @@ match stmt {
         }
 
         let (expr, expr_span) = spanned_expr;
-        let Expr::FnCall { .. } = expr else {
+        let Expr::FnCall { name, .. } = expr else {
             type_env.add_err(path, XsError::syntax(
                 expr_span,
                 "Only function calls can be discarded",
@@ -876,10 +874,12 @@ match stmt {
             return Ok(());
         };
 
+        let nodiscard = type_env.get(&name.0).map(|id| id.doc.is_nodiscard()).unwrap_or(true);
+
         // an unknown identifier error will be issued by xs_tc_expr when needed
         let return_value_type = xs_tc_expr(path, spanned_expr, type_env).unwrap_or(Type::Void);
 
-        if let Type::Void = return_value_type {
+        if Type::Void == return_value_type || !nodiscard {
             return Ok(());
         }
         type_env.add_err(path, XsError::warning(

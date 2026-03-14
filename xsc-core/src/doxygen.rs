@@ -8,17 +8,23 @@ pub enum Doc {
     None,
     Ignore(HashSet<u32>),
     Desc(String),
-    FnDesc { desc: String, params: HashMap<Identifier, (usize, String)>, returns: String },
+    FnDesc {
+        desc: String,
+        params: HashMap<Identifier, (usize, String)>,
+        returns: String,
+        nodiscard: bool
+    },
 }
 
 impl Doc {
     pub fn is_none(&self) -> bool {
-        match self {
-            Doc::None => true,
-            _ => false,
-        }
+        matches!(self, Doc::None)
     }
-    
+
+    pub fn is_nodiscard(&self) -> bool {
+        !matches!(self, Doc::FnDesc { nodiscard: false, .. })
+    }
+
     pub fn  parse(comment: &str) -> Result<Doc, &str> {
         let comment = comment.trim_start();
         if comment.starts_with("// xsc-ignore: ") {
@@ -53,6 +59,7 @@ impl Doc {
 
         let mut mode = Mode::Desc;
         let mut idx = 0usize;
+        let mut nodiscard = true;
 
         for line in content {
             if line.starts_with("@param") {
@@ -71,6 +78,8 @@ impl Doc {
                 return_lines.clear();
                 return_lines.push(desc);
                 mode = Mode::Returns;
+            }  else if line.starts_with("@allow_discard") {
+                nodiscard = false;
             } else if line.starts_with('@') {
                 mode = Mode::Desc;
                 desc_lines.push(line);
@@ -94,8 +103,8 @@ impl Doc {
             .collect::<HashMap<_, _>>();
         let returns = return_lines.join("\n").trim().to_string();
 
-        if !params.is_empty() || !returns.is_empty() {
-            Ok(Doc::FnDesc { desc, params, returns })
+        if !params.is_empty() || !returns.is_empty() || !nodiscard {
+            Ok(Doc::FnDesc { desc, params, returns, nodiscard })
         } else {
             Ok(Doc::Desc(desc))
         }
@@ -150,7 +159,7 @@ impl Doc {
             Doc::Desc(desc) => {
                 format!("{}\n\n{}", sign, desc.clone())
             },
-            Doc::FnDesc { desc, params, returns } => {
+            Doc::FnDesc { desc, params, returns, .. } => {
                 let mut doc = format!("{}\n\n{}", sign, desc.clone());
                 if params.len() > 0 {
                     let mut params = params.iter().collect::<Vec<_>>();
