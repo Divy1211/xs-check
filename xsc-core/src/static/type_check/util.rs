@@ -128,7 +128,8 @@ pub fn arith_op(
 
         (Type::Float, Type::Int | Type::Float) => { Some(Type::Float) }
 
-        (Type::Str, _) | (_, Type::Str) if op_name == "add" => { Some(Type::Str) }
+        (Type::Str, _) if op_name == "add" => { Some(Type::Str) }
+        (Type::Int | Type::Float | Type::Bool | Type::Str, Type::Str) if op_name == "add" => { Some(Type::Str) }
 
         (Type::Vec, Type::Vec) if op_name == "add" => { Some(Type::Vec) }
         (Type::Vec, Type::Vec) if op_name == "subtract" => { Some(Type::Vec) }
