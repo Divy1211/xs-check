@@ -179,7 +179,7 @@ $$
 \begin{array}{rc}
     {\tt (xsTcStrConc2)} & \begin{array}{c}
         \begin{array}{cc}
-            \Gamma \vdash E_1 : {\tt int}\ |\ {\tt float}\ |\ {\tt bool}\ |\ {\tt string}\ |\ {\tt vector}
+            \Gamma \vdash E_1 : {\tt int}\ |\ {\tt float}\ |\ {\tt bool}\ |\ {\tt string}
             & \Gamma \vdash E_2 : {\tt string}
         \end{array}
         \\ \hline
