@@ -7,6 +7,7 @@ use crate::parsing::ast::{Identifier};
 use crate::parsing::span::{contains, Span};
 use crate::r#static::info::fn_info::FnInfo;
 use crate::r#static::info::id_info::IdInfo;
+use crate::r#static::info::src_loc::SrcLoc;
 use crate::r#static::info::xs_error::XsError;
 
 #[derive(Debug, Clone)]
@@ -85,6 +86,12 @@ impl TypeEnv {
             .or_else(|| self.identifiers.get(id))
             .map(|val| val.clone())
     }
+
+    pub fn get_active_loop_param(&self, id: &Identifier) -> Option<SrcLoc> {
+        self.current_fnv_env.as_ref()
+            .and_then(|env| env.get_active_loop_param(id))
+            .cloned()
+    }
     
     pub fn set(&mut self, id: &Identifier, info: IdInfo) {
         match &mut self.current_fnv_env {
@@ -102,7 +109,7 @@ impl TypeEnv {
             .and_then(|env| env.get(&Identifier::new("return")))
             .map(|val| val.clone())
     }
-    
+
     pub fn add_group(&mut self, group: &String) {
         self.groups.insert(group.clone());
     }
@@ -162,6 +169,20 @@ impl TypeEnv {
         self.current_doc.take()
     }
     
+    pub fn set_active_loop_param(&mut self, id: &Identifier, src_loc: SrcLoc) {
+        let Some(env) = self.current_fnv_env.as_mut() else {
+            return;
+        };
+        env.set_active_loop_param(id.clone(), src_loc);
+    }
+
+    pub fn unset_active_loop_param(&mut self, id: &Identifier) {
+        let Some(env) = self.current_fnv_env.as_mut() else {
+            return;
+        };
+        env.unset_active_loop_param(id);
+    }
+
     pub fn local_ids(&self, path: &PathBuf, span: &Span) -> Option<&HashMap<Identifier, IdInfo>> {
         self.fn_envs
             .values()
