@@ -632,45 +632,108 @@ match stmt {
         let (AstNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
         else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
-        /* Redefinitions are allowed for for loop variables */
+        let mut can_activate_loop_param = true;
+        let mut chk_loop_var_usage = true;
+        let mut loop_var_type = Type::Int;
+        let is_new_loop_param = match type_env.get(name) {
+            Some(IdInfo { type_, modifiers, .. }) if modifiers.is_const() => {
+                type_env.add_err(path, XsError::syntax(
+                    span,
+                    "Cannot re-assign a value to a {0} variable",
+                    vec!["const"],
+                ));
+                can_activate_loop_param = false;
+                chk_loop_var_usage = false;
+                loop_var_type = type_;
+                false
+            }
+            Some(IdInfo { type_, .. }) => {
+                loop_var_type = type_.clone();
+                match type_ {
+                    Type::Int | Type::Float => {}
+                    _ => {
+                        type_env.add_err(path, XsError::type_mismatch(
+                            &type_.to_string(),
+                            "int | float",
+                            name_span,
+                            None,
+                        ));
+                        can_activate_loop_param = false;
+                        chk_loop_var_usage = false;
+                    }
+                }
+                false
+            }
+            None => {
+                type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), doc.clone()));
+                true
+            }
+        };
 
-        // match type_env.get(name) {
-        //     Some(IdInfo { src_loc: og_src_loc, .. }) => {
-        //         type_env.add_err(path, XSError::redefined_name(
-        //             name,
-        //             name_span,
-        //             &og_src_loc,
-        //             None,
-        //         ));
-        //         return Ok(());
-        //     }
-        //     _ => {}
-        // };
-
-        if let Some(value_type) = xs_tc_expr(path, value, type_env) {
-            type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));
+        if let Some(og_src_loc) = type_env.get_active_loop_param(name) {
+            type_env.add_err(path, XsError::redefined_name(
+                name,
+                name_span,
+                &og_src_loc,
+                Some("Nested loops cannot reuse the same loop parameter"),
+            ));
+            can_activate_loop_param = false;
         }
 
-        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), doc));
-        if let Some(type_) = xs_tc_expr(path, condition, type_env) {
-            if type_ != Type::Bool {
-                type_env.add_err(path, XsError::type_mismatch(
-                    &type_.to_string(),
-                    "bool",
-                    &condition.1,
-                    None,
-                ));
+        let value_type = xs_tc_expr(path, value, type_env);
+        if chk_loop_var_usage {
+            if let Some(value_type) = value_type {
+                let expected_type = if is_new_loop_param { &Type::Int } else { &loop_var_type };
+                type_env.add_errs(path, type_cmp(expected_type, &value_type, &value.1, false, false));
             }
         }
 
-        combine_results(body.0.iter()
+        if chk_loop_var_usage {
+            if let Some(type_) = xs_tc_expr(path, condition, type_env) {
+                if type_ != Type::Bool {
+                    type_env.add_err(path, XsError::type_mismatch(
+                        &type_.to_string(),
+                        "bool",
+                        &condition.1,
+                        None,
+                    ));
+                }
+            }
+        } else {
+            let Some(spanned_expr) = (match &condition.0 {
+                Expr::Lt(_lhs, rhs) | Expr::Le(_lhs, rhs) | Expr::Gt(_lhs, rhs) | Expr::Ge(_lhs, rhs) => {
+                    Some(rhs.as_ref())
+                }
+                _ => None,
+            }) else {
+                unreachable!("XSC Internal Error while type checking For condition at {}", condition.1);
+            };
+            xs_tc_expr(path, spanned_expr, type_env);
+        }
+
+        if can_activate_loop_param {
+            let loop_src_loc = if is_new_loop_param {
+                SrcLoc::from(path, name_span)
+            } else {
+                SrcLoc::from(path, span)
+            };
+            type_env.set_active_loop_param(name, loop_src_loc);
+        }
+
+        let result = combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
                     path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, true, true,
                 )
             })
-        )
+        );
+
+        if can_activate_loop_param {
+            type_env.unset_active_loop_param(name);
+        }
+
+        result
     },
     AstNode::Switch { clause, cases } => {
         if is_top_level {
