@@ -1,5 +1,5 @@
 // + --------------------------------- +
-// | Generated on: 2026/03/14 11:04:06 |
+// | Generated on: 2026/04/14 06:21:34 |
 // | Made by:      Alian713            |
 // + --------------------------------- +
 
@@ -13,16 +13,16 @@ extern int infiniteRecursionLimit = -1;
 // 1. File Io
 
 
-/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/file_io/#12-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a string (4 bytes + a number of bytes that is determined by the integer that the first 4 bytes represent) */
+/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/functions/#1312-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a string (4 bytes + a number of bytes that is determined by the integer that the first 4 bytes represent) */
 extern const int cOffsetString = 0;
 
-/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/file_io/#12-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store an integer (4 bytes) */
+/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/functions/#1312-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store an integer (4 bytes) */
 extern const int cOffsetInteger = 1;
 
-/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/file_io/#12-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a float (4 bytes) */
+/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/functions/#1312-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a float (4 bytes) */
 extern const int cOffsetFloat = 2;
 
-/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/file_io/#12-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a vector (12 bytes) */
+/** Used with the [xsOffsetFilePosition](https://ugc.aoe2.rocks/general/xs/functions/functions/#1312-xsoffsetfileposition). Makes the offset function move the file position by the number of bytes it takes to store a vector (12 bytes) */
 extern const int cOffsetVector = 3;
 
 
@@ -335,201 +335,201 @@ extern const int cNumAoeCivs = 18;
 // 8. EffectAmount Effect Type
 
 
-/** This is the ID of the `Set Attribute` effect of the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#81-csetattribute) */
+/** This is the ID of the `Set Attribute` effect of the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#81-csetattribute) */
 extern const int cSetAttribute = 0;
 
-/** This is the ID of the `Modify Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#82-cmodresource) */
+/** This is the ID of the `Modify Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#82-cmodresource) */
 extern const int cModResource = 1;
 
-/** This is the ID of the `Enable (or disable) Object` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#83-cenableobject) */
+/** This is the ID of the `Enable (or disable) Object` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#83-cenableobject) */
 extern const int cEnableObject = 2;
 
-/** This is the ID of the `Upgrade Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#84-cupgradeunit) */
+/** This is the ID of the `Upgrade Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#84-cupgradeunit) */
 extern const int cUpgradeUnit = 3;
 
-/** This is the ID of the `Add Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#85-caddattribute) */
+/** This is the ID of the `Add Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#85-caddattribute) */
 extern const int cAddAttribute = 4;
 
-/** This is the ID of the `Multiply Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#86-cmulattribute) */
+/** This is the ID of the `Multiply Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#86-cmulattribute) */
 extern const int cMulAttribute = 5;
 
-/** This is the ID of the `Multiply Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#87-cmulresource) */
+/** This is the ID of the `Multiply Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#87-cmulresource) */
 extern const int cMulResource = 6;
 
-/** This is the ID of the `Spawn Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#88-cspawnunit) */
+/** This is the ID of the `Spawn Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#88-cspawnunit) */
 extern const int cSpawnUnit = 7;
 
-/** This is the ID of the `Modify Technology` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#89-cmodifytech) */
+/** This is the ID of the `Modify Technology` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#89-cmodifytech) */
 extern const int cModifyTech = 8;
 
-/** This is the ID of the `Set Player Data` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#810-csetplayerdata) */
+/** This is the ID of the `Set Player Data` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#810-csetplayerdata) */
 extern const int cSetPlayerData = 9;
 
-/** This is the ID of the `Set Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#811-csetunitattribute) */
+/** This is the ID of the `Set Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#811-csetunitattribute) */
 extern const int cSetUnitAttribute = 10;
 
-/** This is the ID of the `Add Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#812-caddunitattribute) */
+/** This is the ID of the `Add Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#812-caddunitattribute) */
 extern const int cAddUnitAttribute = 11;
 
-/** This is the ID of the `Multiply Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#813-cmulunitattribute) */
+/** This is the ID of the `Multiply Unit Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#813-cmulunitattribute) */
 extern const int cMulUnitAttribute = 12;
 
-/** This is the ID of the `Set Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#814-csettechcost) */
+/** This is the ID of the `Set Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#814-csettechcost) */
 extern const int cSetTechCost = 100;
 
-/** This is the ID of the `Add Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#815-caddtechcost) */
+/** This is the ID of the `Add Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#815-caddtechcost) */
 extern const int cAddTechCost = 101;
 
-/** This is the ID of the `Disable Tech` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#816-cdisabletech) */
+/** This is the ID of the `Disable Tech` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#816-cdisabletech) */
 extern const int cDisableTech = 102;
 
-/** This is the ID of the `Modify Technology Time` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#817-cmodtechtime) */
+/** This is the ID of the `Modify Technology Time` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#817-cmodtechtime) */
 extern const int cModTechTime = 103;
 
-/** This is the ID of the `Gaia Set Attribute` effect of the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#818-cgaiasetattribute) */
+/** This is the ID of the `Gaia Set Attribute` effect of the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#818-cgaiasetattribute) */
 extern const int cGaiaSetAttribute = -1;
 
-/** This is the ID of the `Gaia Modify Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#819-cgaiamodresource) */
+/** This is the ID of the `Gaia Modify Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#819-cgaiamodresource) */
 extern const int cGaiaModResource = -2;
 
-/** This is the ID of the `Gaia Enable (or disable) Object` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#820-cgaiaenableobject) */
+/** This is the ID of the `Gaia Enable (or disable) Object` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#820-cgaiaenableobject) */
 extern const int cGaiaEnableObject = -3;
 
-/** This is the ID of the `Gaia Upgrade Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#821-cgaiaupgradeunit) */
+/** This is the ID of the `Gaia Upgrade Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#821-cgaiaupgradeunit) */
 extern const int cGaiaUpgradeUnit = -4;
 
-/** This is the ID of the `Gaia Add Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#822-cgaiaaddattribute) */
+/** This is the ID of the `Gaia Add Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#822-cgaiaaddattribute) */
 extern const int cGaiaAddAttribute = -5;
 
-/** This is the ID of the `Gaia Multiply Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#823-cgaiamulattribute) */
+/** This is the ID of the `Gaia Multiply Attribute` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#823-cgaiamulattribute) */
 extern const int cGaiaMulAttribute = -6;
 
-/** This is the ID of the `Gaia Multiply Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#824-cgaiamulresource) */
+/** This is the ID of the `Gaia Multiply Resource` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#824-cgaiamulresource) */
 extern const int cGaiaMulResource = -7;
 
-/** This is the ID of the `Gaia Spawn Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#825-cgaiaspawnunit) */
+/** This is the ID of the `Gaia Spawn Unit` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#825-cgaiaspawnunit) */
 extern const int cGaiaSpawnUnit = -8;
 
-/** This is the ID of the `Gaia Modify Technology` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#826-cgaiamodifytech) */
+/** This is the ID of the `Gaia Modify Technology` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#826-cgaiamodifytech) */
 extern const int cGaiaModifyTech = -9;
 
-/** This is the ID of the `Gaia Set Player Data` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#827-cgaiasetplayerdata) */
+/** This is the ID of the `Gaia Set Player Data` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#827-cgaiasetplayerdata) */
 extern const int cGaiaSetPlayerData = -10;
 
-/** This is the ID of the `Gaia Set Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#828-cgaiasettechcost) */
+/** This is the ID of the `Gaia Set Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#828-cgaiasettechcost) */
 extern const int cGaiaSetTechCost = -101;
 
-/** This is the ID of the `Gaia Add Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#829-cgaiaaddtechcost) */
+/** This is the ID of the `Gaia Add Technology Cost` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#829-cgaiaaddtechcost) */
 extern const int cGaiaAddTechCost = -102;
 
-/** This is the ID of the `Gaia Disable Tech` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#830-cgaiadisabletech) */
+/** This is the ID of the `Gaia Disable Tech` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#830-cgaiadisabletech) */
 extern const int cGaiaDisableTech = -103;
 
-/** This is the ID of the `Gaia Modify Technology Time` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#831-cgaiamodtechtime) */
+/** This is the ID of the `Gaia Modify Technology Time` effect for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function. No Longer works, use `cModifyTech` instead View usage details on [ugc.aoe2.rocks](https://ugc.aoe2.rocks/general/xs/constants/#831-cgaiamodtechtime) */
 extern const int cGaiaModTechTime = -104;
 
 
 // 9. EffectAmount Effect Operations
 
 
-/** This is the ID of the `Attribute Disbale` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Disbale` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeDisable = 0;
 
-/** This is the ID of the `Attribute Enable` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Enable` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeEnable = 1;
 
-/** This is the ID of the `Attribute Force` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Force` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeForce = 2;
 
-/** This is the ID of the `Attribute Research` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Research` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeResearch = 2;
 
-/** This is the ID of the `Attribute Set` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeSet = 0;
 
-/** This is the ID of the `Attribute Add` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttributeAdd = 1;
 
 
 // 10. EffectAmount Technology Attribute
 
 
-/** This is the ID of the `Attribute Set Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetTime = -1;
 
-/** This is the ID of the `Attribute Add Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrAddTime = -2;
 
-/** This is the ID of the `Attribute Multiply Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply Time` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulTime = -3;
 
-/** This is the ID of the `Attribute Set Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetFoodCost = 0;
 
-/** This is the ID of the `Attribute Set Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetWoodCost = 1;
 
-/** This is the ID of the `Attribute Set Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetStoneCost = 2;
 
-/** This is the ID of the `Attribute Set Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetGoldCost = 3;
 
-/** This is the ID of the `Attribute Add Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrAddFoodCost = 16384;
 
-/** This is the ID of the `Attribute Add Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrAddWoodCost = 16385;
 
-/** This is the ID of the `Attribute Add Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrAddStoneCost = 16386;
 
-/** This is the ID of the `Attribute Add Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Add Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrAddGoldCost = 16387;
 
-/** This is the ID of the `Attribute Multiply Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply Food Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulFoodCost = 13;
 
-/** This is the ID of the `Attribute Multiply Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply Wood Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulWoodCost = 14;
 
-/** This is the ID of the `Attribute Multiply Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply Stone Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulStoneCost = 15;
 
-/** This is the ID of the `Attribute Multiply Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply Gold Cost` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulGoldCost = 16;
 
-/** This is the ID of the `Attribute Multiply All Costs` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Multiply All Costs` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrMulAllCosts = 17;
 
-/** This is the ID of the `Attribute Set Effect` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Effect` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetEffect = 18;
 
-/** This is the ID of the `Attribute Set Tech Location` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Location` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetLocation = 4;
 
-/** This is the ID of the `Attribute Set Tech Button` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Button` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetButton = 5;
 
-/** This is the ID of the `Attribute Set Tech Icon` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Icon` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetIcon = 6;
 
-/** This is the ID of the `Attribute Set Tech Name` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Name` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetName = 7;
 
-/** This is the ID of the `Attribute Set Tech Description` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Description` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetDescription = 8;
 
-/** This is the ID of the `Attribute Set Tech Stacking` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Tech Stacking` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetStacking = 9;
 
-/** This is the ID of the `Attribute Set Stacking Research Cap` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Stacking Research Cap` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetStackingResearchCap = 10;
 
-/** This is the ID of the `Attribute Set Hotkey` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set Hotkey` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetHotkey = 11;
 
-/** This is the ID of the `Attribute Set State` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) function */
+/** This is the ID of the `Attribute Set State` modifier for the [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) function */
 extern const int cAttrSetState = 12;
 
 
@@ -788,25 +788,25 @@ extern const int cDamageGraphic = 91;
 /** This is the attribute [Selection Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#92-selection-sound) */
 extern const int cSelectionSound = 92;
 
-/** This is the attribute [Selection Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#93-selection-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Selection Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#93-selection-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/#415-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/#416-bitcasttoint) respectively. */
 extern const int cSelectionSoundEvent = 93;
 
 /** This is the attribute [Dying Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#94-dying-sound) */
 extern const int cDyingSound = 94;
 
-/** This is the attribute [Dying Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#95-dying-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Dying Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#95-dying-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/#415-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/#416-bitcasttoint) respectively. */
 extern const int cDyingSoundEvent = 95;
 
 /** This is the attribute [Train Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#96-train-sound) */
 extern const int cTrainSound = 96;
 
-/** This is the attribute [Train Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#97-train-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Train Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#97-train-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/#415-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/#416-bitcasttoint) respectively. */
 extern const int cTrainSoundEvent = 97;
 
 /** This is the attribute [Damage Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#98-damage-sound) */
 extern const int cDamageSound = 98;
 
-/** This is the attribute [Damage Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#99-damage-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Damage Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#99-damage-sound-event) Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/#415-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/#416-bitcasttoint) respectively. */
 extern const int cDamageSoundEvent = 99;
 
 /** This is the attribute [Resource Costs](https://ugc.aoe2.rocks/general/attributes/attributes/#100-resource-costs) */
@@ -902,25 +902,25 @@ extern const int cAttack2Graphic = 131;
 /** This is the attribute [Command Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#132-command-sound). */
 extern const int cCommandSound = 132;
 
-/** This is the attribute [Command Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#133-command-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Command Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#133-command-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#16-bitcasttoint) respectively. */
 extern const int cCommandSoundEvent = 133;
 
 /** This is the attribute [Move Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#134-move-sound). */
 extern const int cMoveSound = 134;
 
-/** This is the attribute [Move Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#135-move-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Move Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#135-move-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#16-bitcasttoint) respectively. */
 extern const int cMoveSoundEvent = 135;
 
 /** This is the attribute [Construction Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#136-construction-sound). */
 extern const int cConstructionSound = 136;
 
-/** This is the attribute [Construction Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#137-construction-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Construction Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#137-construction-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#16-bitcasttoint) respectively. */
 extern const int cConstructionSoundEvent = 137;
 
 /** This is the attribute [Transform Sound](https://ugc.aoe2.rocks/general/attributes/attributes/#138-transform-sound). */
 extern const int cTransformSound = 138;
 
-/** This is the attribute [Transform Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#139-transform-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/player/#1-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#3-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/units_objects/#4-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/constants/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/constants/maths/#16-bitcasttoint) respectively. */
+/** This is the attribute [Transform Sound Event](https://ugc.aoe2.rocks/general/attributes/attributes/#139-transform-sound-event). Note: When using with [xsEffectAmount](https://ugc.aoe2.rocks/general/xs/functions/functions/#71-xseffectamount) or one of [xsGetObjectAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#93-xsgetobjectattribute) or [xsGetUnitAttribute](https://ugc.aoe2.rocks/general/xs/functions/functions/#94-xsgetunitattribute), values require to be converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#15-bitcasttofloat) and [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/functions/maths/#16-bitcasttoint) respectively. */
 extern const int cTransformSoundEvent = 139;
 
 /** This is the attribute [Run Pattern](https://ugc.aoe2.rocks/general/attributes/attributes/#140-run-pattern). */
@@ -3234,7 +3234,7 @@ int xsGetRandomNumberMax(int max = -1) {}
 string xsGetTechName(int techId = -1, int playerId = -1, bool internalName = false) {}
 
 /**
-* Returns one of the [cTechState constants](https://ugc.aoe2.rocks/general/xs/constants/tech_state) based on the tech's status
+* Returns one of the [cTechState constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#17-tech-state) based on the tech's status
 *
 * @param techId The tech to get the state for
 * @param playerId The player to get the tech's state for
@@ -3260,11 +3260,11 @@ bool xsResearchTechnology(int techId = -1, bool force = false, bool techAvailabl
 // 7. Player
 
 /**
-* Change the specified attribute of the specified object or technology by the value for the specified player. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/object_attribute/#85-cselectionsoundevent) require to be passed after being converted using [bitCastToFloat](https://ugc.aoe2.rocks/general/xs/functions/maths/#15-bitcasttofloat).
+* Change the specified attribute of the specified object or technology by the value for the specified player. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/constants/#1185-cselectionsoundevent) require to be passed after being converted using [bitCastToFloat](./#415-bitcasttofloat).
 *
-* @param effectId The ID of the effect to use. See the [Effect Type](https://ugc.aoe2.rocks/general/xs/constants/effect_amount_effect_type/) and [Technology Attribute](https://ugc.aoe2.rocks/general/xs/constants/effect_amount_technology_attribute/) constants
+* @param effectId The ID of the effect to use. See the [Effect Type](https://ugc.aoe2.rocks/general/xs/constants/constants/#8-effect-amount-effect-type) and [Technology Attribute](https://ugc.aoe2.rocks/general/xs/constants/constants/#10-effect-amount-technology-attribute) constants
 * @param objectOrTechnologyId The ID of the object, unit, or technology to effect
-* @param attributeOrOperation The attribute to modify or the operation to perform, See the [Effect Operation](https://ugc.aoe2.rocks/general/xs/constants/effect_amount_effect_operations/) constants
+* @param attributeOrOperation The attribute to modify or the operation to perform, See the [Effect Operation](https://ugc.aoe2.rocks/general/xs/constants/constants/#9-effectamount-effect-operations) constants
 * @param value The value of the effect
 * @param playerNumber The player to apply the effect to. If unspecified, applies to all players except Gaia.
 *
@@ -3273,7 +3273,7 @@ bool xsResearchTechnology(int techId = -1, bool force = false, bool techAvailabl
 void xsEffectAmount(int effectId = -1, int objectOrTechnologyId = -1, int attributeOrOperation = -1, float value = -1.0, int playerNumber = -1) {}
 
 /**
-* Returns the difficulty setting for the game. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/difficulty) for all the different difficulty IDs
+* Returns the difficulty setting for the game. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#22-difficulty) for all the different difficulty IDs
 *
 * @returns int
 */
@@ -3299,7 +3299,7 @@ int xsGetDiplomacy(int sourcePlayerId = -1, int targetPlayerId = -1) {}
 float xsGetHandicapMultiplier(int playerId = -1) {}
 
 /**
-* Returns the civilization ID of the given player. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/aoe2_civs) for all the different civ IDs
+* Returns the civilization ID of the given player. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#5-aoe2-civs) for all the different civ IDs
 *
 * @param playerNumber The player to get the civilization of
 *
@@ -3335,7 +3335,7 @@ string xsGetPlayerName(int playerId = -1) {}
 int xsGetPlayerNumberOfTechs(int playerNumber = -1) {}
 
 /**
-* Returns the type of player. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/player_type) for all the different player types
+* Returns the type of player. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#19-player-type) for all the different player types
 *
 * @param playerId The player to get the type for
 *
@@ -3413,7 +3413,7 @@ int xsGetObjectTaskCount(int objectId = -1, int playerId = -1) {}
 /**
 * Returns the given task field from XS' global task struct.
 *
-* @param taskFieldId The task field to ge the value for. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/task_attribute) for all the different task field IDs
+* @param taskFieldId The task field to ge the value for. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#15-task-attribute) for all the different task field IDs
 *
 * @returns float
 */
@@ -3475,7 +3475,7 @@ bool xsObjectTaskAmount(int objectId = -1, int playerId = -1, int taskId = -1) {
 * Removes a task from a object if the specified `actionType`, `objectId`, and `Search Wait Time` (set by [xsTaskAmount](./#1-xstaskamount)) match an existing task in a object. No other fields are used for filtering (same as when [xsTask](./#1-xstask) edits instead of adding a new task)
 *
 * @param objectOrClassId The object or class ID to remove the task from.
-* @param actionType Task type. Refer to [cTaskType constants](https://ugc.aoe2.rocks/general/xs/constants/task_type)
+* @param actionType Task type. Refer to [cTaskType constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#16-task-type)
 * @param targetObjectOrClassId Target object or class ID for the task to filter by.
 * @param playerId The player from whose objects the task will be removed. If unspecified or -1, applies to all players except Gaia.
 *
@@ -3496,7 +3496,7 @@ void xsResetTaskAmount() {}
 * Note that `xsTaskAmount` modifies a global task struct which is re-used every time `#!xs xsTask` is called (For non programmers, this is similar to filling out a form once (the calls to [xsTaskAmount](./#1-xstaskamount)) and then submitting multiple copies of it for different people)
 *
 * @param objectOrClassId The object or class ID to add the task to
-* @param actionType Task type. Refer to [cTaskType constants](https://ugc.aoe2.rocks/general/xs/constants/task_type)
+* @param actionType Task type. Refer to [cTaskType constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#16-task-type)
 * @param targetObjectOrClassId Target object or class ID for the task to filter by.
 * @param playerId The player to whose objects the task will be inserted. If unspecified or -1, applies to all players except Gaia.
 *
@@ -3507,7 +3507,7 @@ void xsTask(int objectOrClassId = -1, int actionType = -1, int targetObjectOrCla
 /**
 * Sets the value of the given field of the global XS task struct to the provided value. See also [xsTask](./#8-xsmodifyobjecttasks). It is recommended to always set all values before inserting or updating a task otherwise the insert/update might fail.
 *
-* @param taskFieldId Specifies which property of the task to change. Refer to [cTaskAttr constants](https://ugc.aoe2.rocks/general/xs/constants/task_attribute)
+* @param taskFieldId Specifies which property of the task to change. Refer to [cTaskAttr constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#15-task-attribute)
 * @param value The value to set the task field to
 *
 * @returns void
@@ -3526,7 +3526,7 @@ void xsTaskAmount(int taskFieldId = -1, float value = -1.0) {}
 bool xsUnitTaskAmount(int unitId = -1, int taskId = -1) {}
 
 
-// 9. Units_Objects
+// 9. Units And Objects
 
 /**
 * Creates a unit on the map and returns its ID, or -1 if creation failed
@@ -3579,7 +3579,7 @@ int xsGetGarrisonedUnitIds(int unitId = -1) {}
 vector xsGetGroupMoveTarget(int groupId = -1) {}
 
 /**
-* Returns the attribute value for an object. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/object_attribute/#85-cselectionsoundevent) must be converted using [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/maths/#16-bitcasttoint) after being returned.
+* Returns the attribute value for an object. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/constants/#1185-cselectionsoundevent) must be converted using [bitCastToInt](./#416-bitcasttoint) after being returned.
 *
 * @param playerId The player whose object to get the attribute for
 * @param objectId The object to get the attribute for
@@ -3591,7 +3591,7 @@ vector xsGetGroupMoveTarget(int groupId = -1) {}
 float xsGetObjectAttribute(int playerId = -1, int objectId = -1, int attribute = -1, int damageClass = -1) {}
 
 /**
-* Returns the given object's class for the specified player. See [cClass constants](https://ugc.aoe2.rocks/general/xs/constants/object_class)
+* Returns the given object's class for the specified player. See [cClass constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#12-object-class)
 *
 * @param playerId The player to get the object's class for
 * @param objectId The object to get the class for
@@ -3642,7 +3642,7 @@ int xsGetObjectCountTotal(int playerId = -1, int objectOrClassId = -1) {}
 string xsGetObjectName(int objectId = -1, int playerId = -1, bool internalName = false) {}
 
 /**
-* Returns the given object's type for the specified player. See [cObjectType constants](https://ugc.aoe2.rocks/general/xs/constants/object_type)
+* Returns the given object's type for the specified player. See [cObjectType constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#18-object-type)
 *
 * @param playerId The player to get the object's type for
 * @param objectId The object to get the type for
@@ -3652,7 +3652,7 @@ string xsGetObjectName(int objectId = -1, int playerId = -1, bool internalName =
 int xsGetObjectType(int playerId = -1, int objectId = -1) {}
 
 /**
-* Returns the attribute value for a specific unit on the map. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/object_attribute/#85-cselectionsoundevent) must be converted using [bitCastToInt](https://ugc.aoe2.rocks/general/xs/functions/maths/#16-bitcasttoint) after being returned.
+* Returns the attribute value for a specific unit on the map. Note that values for certain attributes such as [sound events](https://ugc.aoe2.rocks/general/xs/constants/constants/#1185-cselectionsoundevent) must be converted using [bitCastToInt](./#416-bitcasttoint) after being returned.
 *
 * @param unitId The unit to get the attribute for.
 * @param attribute The attribute to get
@@ -3700,7 +3700,7 @@ float xsGetUnitBuildPoints(int unitId = -1) {}
 float xsGetUnitCharge(int unitId = -1) {}
 
 /**
-* Returns the given unit's class See [cClass constants](https://ugc.aoe2.rocks/general/xs/constants/object_class)
+* Returns the given unit's class See [cClass constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#12-object-class)
 *
 * @param unitId The unit to get the class for
 *
@@ -3791,7 +3791,7 @@ vector xsGetUnitPosition(int unitId = -1) {}
 int xsGetUnitTargetUnitId(int unitId = -1) {}
 
 /**
-* Returns the given unit's type. See [cObjectType constants](https://ugc.aoe2.rocks/general/xs/constants/object_type)
+* Returns the given unit's type. See [cObjectType constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#18-object-type)
 *
 * @param unitId The unit to get the type for
 *
@@ -3894,7 +3894,7 @@ bool xsSetUnitPosition(int unitId = -1, vector position = vector(-1, -1, -1), bo
 // 10. Map
 
 /**
-* Returns the current color mood of the map. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/color_mood) for all the different color mood IDs
+* Returns the current color mood of the map. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#21-color-mood) for all the different color mood IDs
 *
 * @returns int
 */
@@ -3931,7 +3931,7 @@ string xsGetMapName(bool showFileExtension = false) {}
 int xsGetMapWidth() {}
 
 /**
-* Sets the color mood of the map with a transition time. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/color_mood) for all the different color mood IDs
+* Sets the color mood of the map with a transition time. Refer to the [Constant Reference](https://ugc.aoe2.rocks/general/xs/constants/constants/#21-color-mood) for all the different color mood IDs
 *
 * @param colorMood The color mood to set
 * @param interval The transition duration in seconds
@@ -4119,7 +4119,7 @@ int xsGetFileSize() {}
 /**
 * Moves the file position forward (or backward) relative to the current file position, and by an amount of bytes equivalent to reading the given data type
 *
-* @param dataType The [cOffset constants](https://ugc.aoe2.rocks/general/xs/constants/file_io) can be used to specify the datatype used for the offset. Integers and floats are 4 bytes long, vectors are 12 bytes long and strings can be of variable length (specified by the 32 bit int preceding the chars of the string)
+* @param dataType The [cOffset constants](https://ugc.aoe2.rocks/general/xs/constants/constants/#1-file-io) can be used to specify the datatype used for the offset. Integers and floats are 4 bytes long, vectors are 12 bytes long and strings can be of variable length (specified by the 32 bit int preceding the chars of the string)
 * @param forward Default: `#!xs true`. Setting this to `#!xs false` will make the file position move back
 *
 * @returns bool
@@ -4261,7 +4261,7 @@ void xsSetStrategicNumber(int id = -1, int value = -1) {}
 /**
 * A runtime event is called after all the XS code has finished executing but before rules start executing. It calls the function `functionName` given to it with the `functionArgument` passed to it as a parameter. For programmers familiar with the terminology, this is basically a way to set a callback. It also returns true if the function name given to it exists, otherwise it returns false. Does not work with built-ins
 *
-* @param runtimeName This is the name of the runtime to create the event in. This should be `"Random Map"` for RMS and `"Scenario Triggers"` for scenarios. Find which one to use in a general script by using the `#!xs xsGetMapName(true)` [function](https://ugc.aoe2.rocks/general/xs/functions/map/#1-xsgetmapname) and checking the extension. To use with an AI, set the runtime name to "Expert" and pass the player number as the arg
+* @param runtimeName This is the name of the runtime to create the event in. This should be `"Random Map"` for RMS and `"Scenario Triggers"` for scenarios. Find which one to use in a general script by using the `#!xs xsGetMapName(true)` [function](./#101-xsgetmapname) and checking the extension. To use with an AI, set the runtime name to "Expert" and pass the player number as the arg
 * @param functionName This is the name of a user defined function that takes a single integer argument
 * @param functionArgument This is an integer argument that is passed to the function given to the argument `functionName` when this event runs.
 *

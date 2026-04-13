@@ -76,14 +76,12 @@ impl TypeEnv {
         self.current_fnv_env.as_mut()
             .and_then(|env| env.get_mut(id))
             .or_else(|| self.identifiers.get_mut(id))
-            .map(|val| val)
     }
     
     pub fn get(&self, id: &Identifier) -> Option<IdInfo> {
         self.current_fnv_env.as_ref()
             .and_then(|env| env.get(id))
-            .or_else(|| self.identifiers.get(id))
-            .map(|val| val.clone())
+            .or_else(|| self.identifiers.get(id)).cloned()
     }
     
     pub fn set(&mut self, id: &Identifier, info: IdInfo) {
@@ -99,8 +97,7 @@ impl TypeEnv {
     
     pub fn get_return(&self) -> Option<IdInfo> {
         self.current_fnv_env.as_ref()
-            .and_then(|env| env.get(&Identifier::new("return")))
-            .map(|val| val.clone())
+            .and_then(|env| env.get(&Identifier::new("return"))).cloned()
     }
     
     pub fn add_group(&mut self, group: &String) {

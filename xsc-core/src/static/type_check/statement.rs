@@ -212,7 +212,6 @@ match stmt {
         type_env.add_errs(path, type_cmp(type_, &init_type, expr_span, false, false));
         
         Ok(())
-
     }
     AstNode::VarAssign {
         name: spanned_name,
@@ -632,20 +631,15 @@ match stmt {
         let (AstNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
         else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
-        /* Redefinitions are allowed for for loop variables */
-
-        // match type_env.get(name) {
-        //     Some(IdInfo { src_loc: og_src_loc, .. }) => {
-        //         type_env.add_err(path, XSError::redefined_name(
-        //             name,
-        //             name_span,
-        //             &og_src_loc,
-        //             None,
-        //         ));
-        //         return Ok(());
-        //     }
-        //     _ => {}
-        // };
+        if let Some(IdInfo { src_loc: og_src_loc, .. }) = type_env.get(name) {
+            type_env.add_err(path, XsError::redefined_name(
+                name,
+                name_span,
+                &og_src_loc,
+                None,
+            ));
+            return Ok(());
+        };
 
         if let Some(value_type) = xs_tc_expr(path, value, type_env) {
             type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));

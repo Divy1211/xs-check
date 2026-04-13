@@ -32,7 +32,7 @@ fn main() {
     has_errors =  has_errors || new_errs;
 
     for (filepath, errs) in type_env.errs() {
-        if errs.len() == 0 {
+        if errs.is_empty() {
             continue;
         } else if filepath == &prelude_path {
             panic!("Prelude can't produce errors")
