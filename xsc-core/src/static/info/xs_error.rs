@@ -36,9 +36,8 @@ pub enum WarningKind {
     NumDownCast = 108,
     NoNumPromo = 109,
     FloatMod = 110,
-    TopStaticVar = 111,
-    InfLoopLim = 112,
-    InfRecLim = 113,
+    InfLoopLim = 111,
+    InfRecLim = 112,
 
     InvalidExternDecl = 999,
     UnknownWarningName = 1000,
@@ -192,41 +191,39 @@ impl WarningKind {
 
     pub fn as_str(&self) -> &str {
         match self {
-            WarningKind::TopStrInit => { "TopStrInit" }
-            WarningKind::DupCase => { "DupCase" }
-            WarningKind::DiscardedFn => { "DiscardedFn" }
-            WarningKind::BreakPt => { "BreakPt" }
-            WarningKind::UnusableClasses => { "UnusableClasses" }
-            WarningKind::FirstOprArith => { "FirstOprArith" }
-            WarningKind::CmpSilentCrash => { "CmpSilentCrash" }
-            WarningKind::BoolCaseSilentCrash => { "BoolCaseSilentCrash" }
-            WarningKind::NumDownCast => { "NumDownCast" }
-            WarningKind::NoNumPromo => { "NoNumPromo" }
-            WarningKind::FloatMod => { "FloatMod" }
-            WarningKind::TopStaticVar => { "TopStaticVar" }
-            WarningKind::InfLoopLim => { "InfLoopLim" }
-            WarningKind::InfRecLim => { "InfRecLim" }
-            WarningKind::InvalidExternDecl => { "InvalidExternDecl" }
-            WarningKind::UnknownWarningName => { "UnknownWarningName" }
+            WarningKind::TopStrInit          => "TopStrInit",
+            WarningKind::DupCase             => "DupCase",
+            WarningKind::DiscardedFn         => "DiscardedFn",
+            WarningKind::BreakPt             => "BreakPt",
+            WarningKind::UnusableClasses     => "UnusableClasses",
+            WarningKind::FirstOprArith       => "FirstOprArith",
+            WarningKind::CmpSilentCrash      => "CmpSilentCrash",
+            WarningKind::BoolCaseSilentCrash => "BoolCaseSilentCrash",
+            WarningKind::NumDownCast         => "NumDownCast",
+            WarningKind::NoNumPromo          => "NoNumPromo",
+            WarningKind::FloatMod            => "FloatMod",
+            WarningKind::InfLoopLim          => "InfLoopLim",
+            WarningKind::InfRecLim           => "InfRecLim",
+            WarningKind::InvalidExternDecl   => "InvalidExternDecl",
+            WarningKind::UnknownWarningName  => "UnknownWarningName",
         }
     }
 
     pub fn from_name(name: &str) -> Option<WarningKind> {
         match name {
-            "TopStrInit"          => { Some(WarningKind::TopStrInit) }
-            "DupCase"             => { Some(WarningKind::DupCase) }
-            "DiscardedFn"         => { Some(WarningKind::DiscardedFn) }
-            "BreakPt"             => { Some(WarningKind::BreakPt) }
-            "UnusableClasses"     => { Some(WarningKind::UnusableClasses) }
-            "FirstOprArith"       => { Some(WarningKind::FirstOprArith) }
-            "CmpSilentCrash"      => { Some(WarningKind::CmpSilentCrash) }
-            "BoolCaseSilentCrash" => { Some(WarningKind::BoolCaseSilentCrash) }
-            "NumDownCast"         => { Some(WarningKind::NumDownCast) }
-            "NoNumPromo"          => { Some(WarningKind::NoNumPromo) }
-            "FloatMod"            => { Some(WarningKind::FloatMod) }
-            "TopStaticVar"        => { Some(WarningKind::TopStaticVar) }
-            "InfLoopLim"          => { Some(WarningKind::InfLoopLim) }
-            "InfRecLim"           => { Some(WarningKind::InfRecLim) }
+            "TopStrInit"          => Some(WarningKind::TopStrInit),
+            "DupCase"             => Some(WarningKind::DupCase),
+            "DiscardedFn"         => Some(WarningKind::DiscardedFn),
+            "BreakPt"             => Some(WarningKind::BreakPt),
+            "UnusableClasses"     => Some(WarningKind::UnusableClasses),
+            "FirstOprArith"       => Some(WarningKind::FirstOprArith),
+            "CmpSilentCrash"      => Some(WarningKind::CmpSilentCrash),
+            "BoolCaseSilentCrash" => Some(WarningKind::BoolCaseSilentCrash),
+            "NumDownCast"         => Some(WarningKind::NumDownCast),
+            "NoNumPromo"          => Some(WarningKind::NoNumPromo),
+            "FloatMod"            => Some(WarningKind::FloatMod),
+            "InfLoopLim"          => Some(WarningKind::InfLoopLim),
+            "InfRecLim"           => Some(WarningKind::InfRecLim),
 
             // InvalidExternDecl and UnknownWarningName cannot be ignored, so it is exlcuded here
             _                     => None
