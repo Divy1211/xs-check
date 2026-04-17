@@ -46,7 +46,7 @@ pub fn xs_tc_stmt(
                 .trim_end_matches(";")
                 .trim();
 
-            let mut decl = decl.split_whitespace().into_iter().filter(|val| *val != "").collect::<Vec<&str>>();
+            let mut decl = decl.split_whitespace().filter(|val| *val != "").collect::<Vec<&str>>();
             if decl.len() == 3 && decl[0] != "const" || decl.len() != 3 && decl.len() != 2 {
                 type_env.add_err(path, XsError::warning(
                     com_span,
