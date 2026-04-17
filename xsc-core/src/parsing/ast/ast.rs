@@ -12,9 +12,9 @@ pub enum RuleOpt {
     Inactive,
     RunImmediately,
     HighFrequency,
-    MinInterval(Spanned<i64>),
-    MaxInterval(Spanned<i64>),
-    Priority(Spanned<i64>),
+    MinInterval(Spanned<Expr>),
+    MaxInterval(Spanned<Expr>),
+    Priority(Spanned<Expr>),
     Group(Spanned<String>),
 }
 
@@ -25,9 +25,9 @@ impl RuleOpt {
             RuleOpt::Inactive => "inactive".into(),
             RuleOpt::RunImmediately => "runImmediately".into(),
             RuleOpt::HighFrequency => "highFrequency".into(),
-            RuleOpt::MinInterval((num, _span)) => format!("minInterval {num}"),
-            RuleOpt::MaxInterval((num, _span)) => format!("maxInterval {num}"),
-            RuleOpt::Priority((num, _span)) => format!("priority {num}"),
+            RuleOpt::MinInterval((num, _span)) => format!("minInterval {}", num.lit_str().expect("lit/id expected")),
+            RuleOpt::MaxInterval((num, _span)) => format!("maxInterval {}", num.lit_str().expect("lit/id expected")),
+            RuleOpt::Priority((num, _span)) => format!("priority {}", num.lit_str().expect("lit/id expected")),
             RuleOpt::Group((grp, _span)) => format!("group {grp}"),
         }
     }
@@ -38,6 +38,7 @@ pub enum AstNode {
     Error,
     Include(Spanned<String>),
     VarDef {
+        is_export: bool,              // no export with const
         is_extern: bool,              // no extern inside locals
         is_const: bool,               // only literals can be assigned to consts, no exprs allowed
         is_static: bool,

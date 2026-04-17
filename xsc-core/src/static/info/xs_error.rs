@@ -35,6 +35,10 @@ pub enum WarningKind {
     BoolCaseSilentCrash = 107,
     NumDownCast = 108,
     NoNumPromo = 109,
+    FloatMod = 110,
+    TopStaticVar = 111,
+    InfLoopLim = 112,
+    InfRecLim = 113,
 
     UnknownWarningName = 1000,
 }
@@ -197,6 +201,10 @@ impl WarningKind {
             WarningKind::BoolCaseSilentCrash => { "BoolCaseSilentCrash" }
             WarningKind::NumDownCast => { "NumDownCast" }
             WarningKind::NoNumPromo => { "NoNumPromo" }
+            WarningKind::FloatMod => { "FloatMod" }
+            WarningKind::TopStaticVar => { "TopStaticVar" }
+            WarningKind::InfLoopLim => { "InfLoopLim" }
+            WarningKind::InfRecLim => { "InfRecLim" }
             WarningKind::UnknownWarningName => { "UnknownWarningName" }
         }
     }
@@ -213,7 +221,11 @@ impl WarningKind {
             "BoolCaseSilentCrash" => { Some(WarningKind::BoolCaseSilentCrash) }
             "NumDownCast"         => { Some(WarningKind::NumDownCast) }
             "NoNumPromo"          => { Some(WarningKind::NoNumPromo) }
-            
+            "FloatMod"            => { Some(WarningKind::FloatMod) }
+            "TopStaticVar"        => { Some(WarningKind::TopStaticVar) }
+            "InfLoopLim"          => { Some(WarningKind::InfLoopLim) }
+            "InfRecLim"           => { Some(WarningKind::InfRecLim) }
+
             // UnknownWarningName cannot be ignored, so it is exlcuded here
             _                     => None
         }

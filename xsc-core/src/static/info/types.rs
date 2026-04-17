@@ -1,4 +1,5 @@
 #[cfg(feature = "lsp")]
+#[allow(clippy::module_inception)]
 mod types {
     use dashmap::DashMap;
     use ropey::Rope;
@@ -18,6 +19,7 @@ mod types {
 }
 
 #[cfg(not(feature = "lsp"))]
+#[allow(clippy::module_inception)]
 mod types {
     use crate::r#static::info::{AstCache, SrcCache};
 

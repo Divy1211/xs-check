@@ -16,7 +16,7 @@ pub fn operator<'src>() -> impl Parser<
                 "-"  => Ok(Token::Minus),
                 "*"  => Ok(Token::Star),
                 "/"  => Ok(Token::FSlash),
-                "%"  => Ok(Token::FSlash),
+                "%"  => Ok(Token::PCent),
                 "<=" => Ok(Token::Le),
                 "<"  => Ok(Token::Lt),
                 ">=" => Ok(Token::Ge),

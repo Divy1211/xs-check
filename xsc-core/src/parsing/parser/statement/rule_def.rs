@@ -1,6 +1,6 @@
 use chumsky::prelude::*;
 
-use crate::parsing::ast::{AstNode, RuleOpt, Identifier, Literal};
+use crate::parsing::ast::{AstNode, RuleOpt, Identifier, Literal, Expr};
 use crate::parsing::lexer::Token;
 use crate::parsing::parser::parser_input::ParserInput;
 use crate::parsing::parser::statement::body::body;
@@ -29,9 +29,10 @@ pub fn rule_def<'tokens>(
         }, info.span()));
     
     let int_arg = one_of([Token::MinInterval, Token::MaxInterval, Token::Priority])
-        .then(
-            select! { Token::Literal(Literal::Int(val)) => val }
-                .map_with(|val, info| (val, info.span()))
+        .then(choice((
+            select! { Token::Literal(lit @ Literal::Int(_)) => Expr::Literal(lit) },
+            select! { Token::Identifier(id) => Expr::Identifier(id) },
+        )).map_with(|val, info| (val, info.span()))
         ).map_with(|(tok, val), info| (match tok {
             Token::MinInterval    => RuleOpt::MinInterval(val),
             Token::MaxInterval    => RuleOpt::MaxInterval(val),

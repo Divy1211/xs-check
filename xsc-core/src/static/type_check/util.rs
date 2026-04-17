@@ -15,11 +15,11 @@ pub fn combine_results<T>(results: impl IntoIterator<Item = Result<(), Vec<T>>>)
             Ok(()) => { None }
             Err(errs) => { num_errs += errs.len(); Some(errs) }
         }).collect::<Vec<_>>();
-    
+
     if num_errs == 0 {
         return Ok(())
     }
-    
+
     Err(errs.into_iter()
         .fold(Vec::with_capacity(num_errs), |mut acc, res| {
             acc.extend(res);
@@ -126,7 +126,17 @@ pub fn arith_op(
             Some(Type::Int)
         }
 
-        (Type::Float, Type::Int | Type::Float) => { Some(Type::Float) }
+        (Type::Float, Type::Int | Type::Float) => {
+            if op_name == "reduce modulo" {
+                type_env.add_err(path, XsError::warning(
+                    span,
+                    "Modulo with {0}s does not return the fractional part. yES",
+                    vec!["float"],
+                    WarningKind::FloatMod,
+                ));
+            }
+            Some(Type::Float)
+        }
 
         (Type::Str, _) if op_name == "add" => { Some(Type::Str) }
         (Type::Int | Type::Float | Type::Bool | Type::Str, Type::Str) if op_name == "add" => { Some(Type::Str) }
@@ -136,7 +146,7 @@ pub fn arith_op(
 
         (Type::Vec, Type::Float | Type::Int) | (Type::Float | Type::Int, Type::Vec) if op_name == "multiply" => { Some(Type::Vec) }
         (Type::Vec, Type::Float | Type::Int) if op_name == "divide" => { Some(Type::Vec) }
-        
+
         (type1, type2) => {
             type_env.add_err(path, XsError::op_mismatch(
                 op_name,

@@ -12,7 +12,7 @@ pub fn var_def<'tokens>() -> impl Parser<
     Spanned<AstNode>,
     extra::Err<Rich<'tokens, Token, Span>>,
 > + Clone {
-    one_of([Token::Extern, Token::Const, Token::Static]).repeated().collect::<Vec<Token>>()
+    one_of([Token::Export, Token::Extern, Token::Const, Token::Static]).repeated().collect::<Vec<Token>>()
         .then(one_of([Token::Int, Token::Bool, Token::Float, Token::String, Token::Vector]))
         .then(
             select! { Token::Identifier(id) => id }
@@ -22,6 +22,7 @@ pub fn var_def<'tokens>() -> impl Parser<
         .then_ignore(just(Token::SColon))
         .map_with(|(((mods, type_), name), value), info| {
             (AstNode::VarDef {
+                is_export: mods.contains(&Token::Export),
                 is_extern: mods.contains(&Token::Extern),
                 is_const: mods.contains(&Token::Const),
                 is_static: mods.contains(&Token::Static),

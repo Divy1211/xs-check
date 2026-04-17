@@ -108,6 +108,7 @@ match stmt {
         // gen_errs_from_path(&inc_path, type_env)
     }
     AstNode::VarDef {
+        is_export,
         is_extern,
         is_static,
         is_const,
@@ -130,7 +131,7 @@ match stmt {
                     type_,
                     SrcLoc::from(path, name_span),
                     doc,
-                    Modifiers::var(*is_static, *is_const, *is_extern)
+                    Modifiers::var(*is_static, *is_const, *is_extern, *is_export)
                 ));
             }
         };
@@ -142,6 +143,39 @@ match stmt {
                 vec!["extern"],
             ));
         }
+
+        if !is_top_level && *is_export {
+            type_env.add_err(path, XsError::syntax(
+                name_span,
+                "Local variables cannot be declared as {0}",
+                vec!["export"],
+            ));
+        }
+
+        if is_top_level && *is_static {
+            type_env.add_err(path, XsError::syntax(
+                name_span,
+                "Global variables declared as {0} cause a silent XS crash. yES",
+                vec!["static"],
+            ));
+        }
+
+        if *is_export && *is_const {
+            type_env.add_err(path, XsError::syntax(
+                name_span,
+                "Variables declared as both {0} and {1} cause a silent XS crash. yES",
+                vec!["export", "const"],
+            ));
+        }
+
+        if *is_static && *is_const {
+            type_env.add_err(path, XsError::syntax(
+                name_span,
+                "{0} variables cannot be declared as {1}",
+                vec!["static", "const"],
+            ));
+        }
+
         let Some(spanned_expr) = value else {
             if *is_const {
                 type_env.add_err(path, XsError::syntax(
@@ -192,17 +226,30 @@ match stmt {
             }
         }
 
+        let mut gen_err = false;
         if *is_static {
             match expr {
                 Expr::Literal(_) | Expr::Neg(_) | Expr::Vec { .. } => { }
+                Expr::Identifier(id) => 'consts: {
+                    let Some(id_info) = type_env.get(id) else {
+                        break 'consts;
+                    };
+                    if !id_info.modifiers.is_const() {
+                        gen_err = true;
+                    }
+                }
                 _ => {
-                    type_env.add_err(path, XsError::syntax(
-                        expr_span,
-                        "{0} variable initializers must be literals or consts",
-                        vec!["static"],
-                    ));
+                    gen_err = true;
                 }
             }
+        }
+
+        if gen_err {
+            type_env.add_err(path, XsError::syntax(
+                expr_span,
+                "{0} variable initializers must be literals or consts",
+                vec!["static"],
+            ));
         }
 
         let Some(init_type) = xs_tc_expr(path, spanned_expr, type_env) else {
@@ -226,6 +273,26 @@ match stmt {
         }
 
         let (name, name_span) = spanned_name;
+
+        match name.0.as_str() {
+            "infiniteLoopLimit" => {
+                type_env.add_err(path, XsError::warning(
+                    span,
+                    "Loops will run for one extra iteration than the defined limit. yES",
+                    vec![],
+                    WarningKind::InfLoopLim,
+                ));
+            }
+            "infiniteRecursionLimit" => {
+                type_env.add_err(path, XsError::warning(
+                    span,
+                    "Exceeding this recursion limit in a recursive function will cause a silent XS crash. yES",
+                    vec![],
+                    WarningKind::InfRecLim,
+                ));
+            }
+            _ => {}
+        }
 
         let Some(IdInfo { type_, modifiers, .. }) = type_env.get(name) else {
             type_env.add_err(path, XsError::undefined_name(
@@ -268,6 +335,7 @@ match stmt {
         let mut opt_spans: HashMap<&str, &Span> = HashMap::with_capacity(rule_opts.len());
 
         for (opt, opt_span) in rule_opts {
+            let mut opt_expr_name = None;
             match opt {
                 RuleOpt::Active | RuleOpt::Inactive => {
                     chk_rule_opt("activity", opt_span, &mut opt_spans, path, type_env);
@@ -279,13 +347,16 @@ match stmt {
                     chk_rule_opt("min interval", opt_span, &mut opt_spans, path, type_env);
                     chk_rule_opt("max interval", opt_span, &mut opt_spans, path, type_env);
                 }
-                RuleOpt::MinInterval(_) => {
+                RuleOpt::MinInterval(expr) => {
+                    opt_expr_name = Some((expr, "minInterval"));
                     chk_rule_opt("min interval", opt_span, &mut opt_spans, path, type_env);
                 }
-                RuleOpt::MaxInterval(_) => {
+                RuleOpt::MaxInterval(expr) => {
+                    opt_expr_name = Some((expr, "maxInterval"));
                     chk_rule_opt("max interval", opt_span, &mut opt_spans, path, type_env);
                 }
-                RuleOpt::Priority(_) => {
+                RuleOpt::Priority(expr) => {
+                    opt_expr_name = Some((expr, "priority"));
                     chk_rule_opt("priority", opt_span, &mut opt_spans, path, type_env);
                 }
                 RuleOpt::Group((grp, _grp_span)) => {
@@ -294,6 +365,18 @@ match stmt {
                     }
                 }
             }
+            if let Some(((expr, span), name)) = opt_expr_name && let Expr::Identifier(id) = expr { 'consts: {
+                let Some(id_info) = type_env.get(id) else {
+                    break 'consts;
+                };
+                if !id_info.modifiers.is_const() {
+                    type_env.add_err(path, XsError::syntax(
+                        span,
+                        "{0} values must be literals or consts",
+                        vec![name],
+                    ));
+                }
+            }}
         }
 
         match type_env.get(name) {
@@ -953,12 +1036,20 @@ match stmt {
                 type_,
                 name: (id, id_span),
                 value,
+                is_export,
                 is_extern,
                 is_const,
                 is_static
             } = member_var
             else { unreachable!("XSC Internal Error while type checking Class {}", id_span) };
 
+            if *is_export {
+                type_env.add_err(path, XsError::syntax(
+                    id_span,
+                    "Member variables cannot be declared as {0}",
+                    vec!["export"],
+                ));
+            }
             if *is_extern {
                 type_env.add_err(path, XsError::syntax(
                     id_span,
