@@ -36,6 +36,68 @@ pub fn xs_tc_stmt(
 ) -> Result<(), Vec<Error>> {
     let mut docstr = None;
     loop { match comments.get(*comment_pos) {
+        Some((com, com_span)) if com.starts_with("/** @extern") => {
+            *comment_pos += 1;
+            let decl = com
+                .trim_start_matches("/**")
+                .trim_end_matches("*/")
+                .trim()
+                .trim_start_matches("@extern")
+                .trim_end_matches(";")
+                .trim();
+
+            let mut decl = decl.split_whitespace().into_iter().filter(|val| *val != "").collect::<Vec<&str>>();
+            if decl.len() == 3 && decl[0] != "const" || decl.len() != 3 && decl.len() != 2 {
+                type_env.add_err(path, XsError::warning(
+                    com_span,
+                    "Invalid syntax for extern declaration",
+                    vec![],
+                    WarningKind::InvalidExternDecl,
+                ));
+                break;
+            }
+            let mut is_const = false;
+            if decl[0] == "const" {
+                decl.remove(0);
+                is_const = true;
+            }
+            let type_ = match decl[0] {
+                "int"    => Type::Int,
+                "float"  => Type::Float,
+                "string" => Type::Str,
+                "vector" => Type::Vec,
+                "bool" => Type::Bool,
+                _ => {
+                    type_env.add_err(path, XsError::warning(
+                        com_span,
+                        &format!("Unrecognised type '{}'", decl[0]),
+                        vec![],
+                        WarningKind::InvalidExternDecl,
+                    ));
+                    break;
+                }
+            };
+
+            let name = Identifier(decl[1].to_string());
+            match type_env.get(&name) {
+                Some(IdInfo { src_loc: og_src_loc, ..}) => {
+                    type_env.add_err(path, XsError::redefined_name(
+                        &name,
+                        span,
+                        &og_src_loc,
+                        None,
+                    ))
+                }
+                None => {
+                    type_env.set(&name, IdInfo::from_with_mods(
+                        &type_,
+                        SrcLoc::from(path, com_span),
+                        Doc::None,
+                        Modifiers::var(false, is_const, true, false)
+                    ));
+                }
+            };
+        }
         Some((com, com_span)) if com_span.end <= span.start => {
             *comment_pos += 1;
             docstr = Some((com, com_span));

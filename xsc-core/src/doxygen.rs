@@ -25,7 +25,7 @@ impl Doc {
         !matches!(self, Doc::FnDesc { nodiscard: false, .. })
     }
 
-    pub fn  parse(comment: &str) -> Result<Doc, &str> {
+    pub fn parse(comment: &str) -> Result<Doc, &str> {
         let comment = comment.trim_start();
         if comment.starts_with("// xsc-ignore: ") {
             let comment = comment.trim_start_matches("// xsc-ignore: ");

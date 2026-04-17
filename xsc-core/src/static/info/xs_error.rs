@@ -40,6 +40,7 @@ pub enum WarningKind {
     InfLoopLim = 112,
     InfRecLim = 113,
 
+    InvalidExternDecl = 999,
     UnknownWarningName = 1000,
 }
 
@@ -205,6 +206,7 @@ impl WarningKind {
             WarningKind::TopStaticVar => { "TopStaticVar" }
             WarningKind::InfLoopLim => { "InfLoopLim" }
             WarningKind::InfRecLim => { "InfRecLim" }
+            WarningKind::InvalidExternDecl => { "InvalidExternDecl" }
             WarningKind::UnknownWarningName => { "UnknownWarningName" }
         }
     }
@@ -226,7 +228,7 @@ impl WarningKind {
             "InfLoopLim"          => { Some(WarningKind::InfLoopLim) }
             "InfRecLim"           => { Some(WarningKind::InfRecLim) }
 
-            // UnknownWarningName cannot be ignored, so it is exlcuded here
+            // InvalidExternDecl and UnknownWarningName cannot be ignored, so it is exlcuded here
             _                     => None
         }
     }
