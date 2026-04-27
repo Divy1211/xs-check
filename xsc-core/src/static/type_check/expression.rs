@@ -41,16 +41,20 @@ pub fn xs_tc_expr(
             }
             return None;
         };
-        let Type::Fn { type_sign, .. } = type_ else {
-            type_env.add_err(path, XsError::not_callable(
-                name,
-                &type_.to_string(),
-                name_span,
-            ));
-            for arg in args {
-                xs_tc_expr(path, arg, type_env);
-            }
-            return None;
+        let type_sign = match type_ {
+            Type::Fn { type_sign, .. } => type_sign,
+            Type::Rule => vec![("return".into(), Type::Void)], // rules can be called with function syntax!
+            _ => {
+                type_env.add_err(path, XsError::not_callable(
+                    name,
+                    &type_.to_string(),
+                    name_span,
+                ));
+                for arg in args {
+                    xs_tc_expr(path, arg, type_env);
+                }
+                return None;
+            },
         };
         for (param_type, arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
             let Some(arg_type) = xs_tc_expr(path, arg_expr, type_env) else {

@@ -32,4 +32,12 @@ impl IdInfo {
     pub fn dummy(type_: Type) -> Self {
         Self { type_, init: None, src_loc: Default::default(), modifiers: Modifiers::var_none(), doc: Doc::None }
     }
+    
+    pub fn make_const(&mut self) {
+        self.modifiers.set_is_const(true);
+    }
+
+    pub fn make_mut(&mut self) {
+        self.modifiers.set_is_const(false);
+    }
 }

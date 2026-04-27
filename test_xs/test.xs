@@ -1,10 +1,7 @@
-void main() {
-    infiniteLoopLimit = 10;
-    int loopCount = 1;
+rule test {}
 
-    while(true) {
-        xsChatData("loop count %d", loopCount);
-        loopCount++;
-    }
-    // the last line printed is "loop count 11" off by one error here
+void main() {
+    test();
+    int b = test();
+    test(1);
 }

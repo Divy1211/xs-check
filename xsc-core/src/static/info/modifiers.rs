@@ -2,7 +2,7 @@ use crate::parsing::ast::RuleOpt;
 
 #[derive(Debug, Clone)]
 pub enum Modifiers {
-    Var { is_static: bool, is_const: bool, is_extern: bool, is_export: bool, },
+    Var { is_static: bool, is_const: bool, is_extern: bool, is_export: bool },
     Rule { rule_opts: Vec<RuleOpt> },
 }
 
@@ -15,6 +15,13 @@ impl Modifiers {
         Modifiers::Var { is_static, is_const, is_extern, is_export }
     }
 
+    pub fn set_is_const(&mut self, value: bool) {
+        match self {
+            Modifiers::Var { is_const, .. } => *is_const = value,
+            _ => {},
+        }
+    }
+    
     pub fn rule(rule_opts: Vec<RuleOpt>) -> Self {
         Modifiers::Rule { rule_opts }
     }

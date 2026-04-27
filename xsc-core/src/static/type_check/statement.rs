@@ -46,7 +46,7 @@ pub fn xs_tc_stmt(
                 .trim_end_matches(";")
                 .trim();
 
-            let mut decl = decl.split_whitespace().filter(|val| *val != "").collect::<Vec<&str>>();
+            let mut decl = decl.split_whitespace().filter(|val| !val.is_empty()).collect::<Vec<&str>>();
             if decl.len() == 3 && decl[0] != "const" || decl.len() != 3 && decl.len() != 2 {
                 type_env.add_err(path, XsError::warning(
                     com_span,
@@ -701,15 +701,13 @@ match stmt {
             ));
         }
 
-        if let Some(type_) = xs_tc_expr(path, condition, type_env) {
-            if type_ != Type::Bool {
-                type_env.add_err(path, XsError::type_mismatch(
-                    &type_.to_string(),
-                    "bool",
-                    &condition.1,
-                    None,
-                ));
-            }
+        if let Some(type_) = xs_tc_expr(path, condition, type_env) && type_ != Type::Bool {
+            type_env.add_err(path, XsError::type_mismatch(
+                &type_.to_string(),
+                "bool",
+                &condition.1,
+                None,
+            ));
         }
 
         let results = consequent.0.iter()
@@ -744,15 +742,13 @@ match stmt {
             ));
         }
 
-        if let Some(type_) = xs_tc_expr(path, condition, type_env) {
-            if type_ != Type::Bool {
-                type_env.add_err(path, XsError::type_mismatch(
-                    &type_.to_string(),
-                    "bool",
-                    &condition.1,
-                    None,
-                ));
-            }
+        if let Some(type_) = xs_tc_expr(path, condition, type_env) && type_ != Type::Bool {
+            type_env.add_err(path, XsError::type_mismatch(
+                &type_.to_string(),
+                "bool",
+                &condition.1,
+                None,
+            ));
         }
         
         combine_results(body.0.iter()
@@ -773,43 +769,61 @@ match stmt {
             ));
         }
 
-        let (AstNode::VarAssign { name: (name, name_span), value }, _span) = var.as_ref()
+        let (AstNode::VarAssign { name: (name, name_span), value }, assign_span) = var.as_ref()
         else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
-        if let Some(IdInfo { src_loc: og_src_loc, .. }) = type_env.get(name) {
-            type_env.add_err(path, XsError::redefined_name(
-                name,
-                name_span,
-                &og_src_loc,
-                None,
-            ));
-            return Ok(());
+        let mut do_err = false;
+        let mut do_set = true;
+        if let Some(id_info) = type_env.get_mut(name) {
+            if id_info.modifiers.is_const() {
+                do_err = true;
+            } else {
+                id_info.make_const();
+            }
+            do_set = false;
         };
+        if do_err {
+            type_env.add_err(path, XsError::syntax(
+                assign_span,
+                "Cannot re-assign a value to a {0} variable",
+                vec!["const"],
+            ));
+        }
 
         if let Some(value_type) = xs_tc_expr(path, value, type_env) {
             type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));
         }
 
-        type_env.set(name, IdInfo::new(Type::Int, SrcLoc::from(path, name_span), doc));
-        if let Some(type_) = xs_tc_expr(path, condition, type_env) {
-            if type_ != Type::Bool {
-                type_env.add_err(path, XsError::type_mismatch(
-                    &type_.to_string(),
-                    "bool",
-                    &condition.1,
-                    None,
-                ));
-            }
+        if do_set {
+            type_env.set(name, IdInfo::from_with_mods(
+                &Type::Int,
+                SrcLoc::from(path, name_span),
+                doc,
+                Modifiers::var(false, true, false, false)),
+            );
+        }
+        if let Some(type_) = xs_tc_expr(path, condition, type_env) && type_ != Type::Bool {
+            type_env.add_err(path, XsError::type_mismatch(
+                &type_.to_string(),
+                "bool",
+                &condition.1,
+                None,
+            ));
         }
 
-        combine_results(body.0.iter()
+        let result = combine_results(body.0.iter()
             .map(|spanned_stmt| {
                 xs_tc_stmt(
                     path, spanned_stmt, type_env, ast_cache, src_cache, comments, comment_pos,
                     false, true, true,
                 )
             })
-        )
+        );
+
+        if let Some(id_info) = type_env.get_mut(name) {
+            id_info.make_mut();
+        };
+        result
     },
     AstNode::Switch { clause, cases } => {
         if is_top_level {
