@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use xsc_core::r#static::info::{gen_errs_from_path, gen_errs_from_src, AstCache, AstMap, Error, SrcCache, TypeEnv};
+use xsc_core::PRELUDE_PATH;
 
 use crate::cli::parse_args;
 use crate::fmt::{print_parse_errs, print_xs_errs};
@@ -18,7 +19,7 @@ fn main() {
     let mut ast_cache = AstMap::new();
     let mut src_cache = AstMap::new();
     
-    let prelude_path = PathBuf::from(r"prelude.xs");
+    let prelude_path = PathBuf::from(PRELUDE_PATH);
     let prelude = include_str!(r"../../xsc-core/prelude.xs");
 
     gen_errs_from_src(&prelude_path, prelude, &mut type_env, &mut ast_cache, &mut src_cache).expect("Prelude can't produce parse errors");

@@ -19,7 +19,8 @@ use crate::r#static::info::{
     XsError,
 };
 use crate::r#static::type_check::expression::xs_tc_expr;
-use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
+use crate::r#static::type_check::util::{chk_rule_opt, combine_results, returns_on_all_paths, type_cmp};
+use crate::PRELUDE_PATH;
 
 #[allow(clippy::too_many_arguments)]
 pub fn xs_tc_stmt(
@@ -630,14 +631,28 @@ match stmt {
                 )
             })
         );
-        
+
+        // The bundled prelude declares engine-implemented builtins as empty-bodied
+        // stubs (e.g. `bool xsIsRuleEnabled(...) {}`). Skip the check for that
+        // synthetic path so user code with an empty placeholder body still warns.
+        let is_prelude = path == &PathBuf::from(PRELUDE_PATH);
+        if !is_prelude && *return_type != Type::Void && !returns_on_all_paths(body) {
+            type_env.add_err(path, XsError::warning(
+                name_span,
+                "Function {0} declares a {1} return type but does not return on all paths. \
+                XS will emit a runtime error if execution falls off the end of the function.",
+                vec![&name.0, &return_type.to_string()],
+                WarningKind::NonExhaustiveReturn,
+            ));
+        }
+
         type_env.save_fn_env(name);
 
         // restore the old fn env if it existed
         if let Some(env) = old_env {
             type_env.set_fn_env(env);
         };
-        
+
         results
     },
     AstNode::Return(spanned_expr) => {

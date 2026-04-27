@@ -38,6 +38,7 @@ pub enum WarningKind {
     FloatMod = 110,
     InfLoopLim = 111,
     InfRecLim = 112,
+    NonExhaustiveReturn = 113,
 
     InvalidExternDecl = 999,
     UnknownWarningName = 1000,
@@ -204,6 +205,7 @@ impl WarningKind {
             WarningKind::FloatMod            => "FloatMod",
             WarningKind::InfLoopLim          => "InfLoopLim",
             WarningKind::InfRecLim           => "InfRecLim",
+            WarningKind::NonExhaustiveReturn => "NonExhaustiveReturn",
             WarningKind::InvalidExternDecl   => "InvalidExternDecl",
             WarningKind::UnknownWarningName  => "UnknownWarningName",
         }
@@ -224,6 +226,7 @@ impl WarningKind {
             "FloatMod"            => Some(WarningKind::FloatMod),
             "InfLoopLim"          => Some(WarningKind::InfLoopLim),
             "InfRecLim"           => Some(WarningKind::InfRecLim),
+            "NonExhaustiveReturn" => Some(WarningKind::NonExhaustiveReturn),
 
             // InvalidExternDecl and UnknownWarningName cannot be ignored, so it is exlcuded here
             _                     => None

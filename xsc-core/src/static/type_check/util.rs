@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use chumsky::container::{Container};
 
-use crate::parsing::ast::{Expr, Literal, Type};
+use crate::parsing::ast::{AstNode, Body, Expr, Literal, Type};
 use crate::parsing::span::{Span, Spanned};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::info::{WarningKind, XsError, TypeEnv};
@@ -283,6 +283,40 @@ pub fn type_cmp(
         }
     };
     errs
+}
+
+// Returns true when every control-flow path through `body` ends in an explicit
+// `return` statement. Conservative: when in doubt, returns false. False negatives
+// (missed warnings) are preferred over false positives (warning on correct code).
+pub fn returns_on_all_paths(body: &Body) -> bool {
+    body.iter().any(stmt_returns)
+}
+
+fn stmt_returns(spanned: &Spanned<AstNode>) -> bool {
+    let (stmt, _) = spanned;
+    match stmt {
+        AstNode::Return(_) => true,
+        AstNode::IfElse { consequent: (cons, _), alternate, .. } => {
+            let alt_returns = match alternate {
+                Some((alt, _)) => returns_on_all_paths(alt),
+                None => false,
+            };
+            returns_on_all_paths(cons) && alt_returns
+        }
+        AstNode::Switch { cases, .. } => {
+            // Sound under both C-style fallthrough and XS-style break semantics:
+            // if every case body unconditionally returns, fallthrough cannot bypass it.
+            // A default case is required, otherwise an unmatched value falls through.
+            let has_default = cases.iter().any(|(discriminant, _)| discriminant.is_none());
+            has_default && cases.iter().all(|(_, (case_body, _))| returns_on_all_paths(case_body))
+        }
+        // Loop bodies may not execute even once, and even `while(true)` is not a
+        // reliable terminator in XS: the runtime caps iterations via
+        // infiniteLoopLimit (see the existing InfLoopLim warning), so a loop can
+        // exit and fall off the end of the function. Conservatively non-returning.
+        AstNode::While { .. } | AstNode::For { .. } => false,
+        _ => false,
+    }
 }
 
 pub fn chk_rule_opt<'src>(
