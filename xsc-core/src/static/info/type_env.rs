@@ -83,6 +83,12 @@ impl TypeEnv {
             .and_then(|env| env.get(id))
             .or_else(|| self.identifiers.get(id)).cloned()
     }
+
+    pub fn pop(&mut self, id: &Identifier) -> Option<IdInfo> {
+        self.current_fnv_env.as_mut()
+            .and_then(|env| env.pop(id))
+            .or_else(|| self.identifiers.remove(id))
+    }
     
     pub fn set(&mut self, id: &Identifier, info: IdInfo) {
         match &mut self.current_fnv_env {

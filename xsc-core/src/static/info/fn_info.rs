@@ -23,8 +23,12 @@ impl FnInfo {
     pub fn get(&self, id: &Identifier) -> Option<&IdInfo> {
         self.identifiers.get(id)
     }
-    
+
     pub fn set(&mut self, id: Identifier, info: IdInfo) {
         self.identifiers.insert(id, info);
+    }
+
+    pub fn pop(&mut self, id: &Identifier) -> Option<IdInfo> {
+        self.identifiers.remove(id)
     }
 }

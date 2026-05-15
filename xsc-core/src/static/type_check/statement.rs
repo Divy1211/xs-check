@@ -314,9 +314,11 @@ match stmt {
             ));
         }
 
+        let info = type_env.pop(name).expect("Value inserted above");
         let Some(init_type) = xs_tc_expr(path, spanned_expr, type_env) else {
             return Ok(());
         };
+        type_env.set(name, info);
 
         type_env.add_errs(path, type_cmp(type_, &init_type, expr_span, false, false));
         
