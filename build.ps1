@@ -113,10 +113,8 @@ Assert-Success "VSC push failed"
 Write-Host ""
 Write-Host "Build pipeline completed successfully"
 
-Set-Location "../../My Stuff/web dev/VSCE/aoe2xsscripting"
-Start-Process "https://github.com/Divy1211/vsc-xs-support/releases"
-
 explorer .
+Start-Process "https://github.com/Divy1211/vsc-xs-support/releases"
 
 Set-Location $PSScriptRoot
 
