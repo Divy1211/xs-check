@@ -114,9 +114,11 @@ Write-Host ""
 Write-Host "Build pipeline completed successfully"
 
 Set-Location "../../My Stuff/web dev/VSCE/aoe2xsscripting"
+Start-Process "https://github.com/Divy1211/vsc-xs-support/releases"
 
 explorer .
 
 Set-Location $PSScriptRoot
 
 explorer "target\release"
+Start-Process "https://github.com/Divy1211/xs-check/releases/"
