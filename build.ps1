@@ -27,36 +27,17 @@ Assert-CleanGitTree "XSC"
 git switch main
 Assert-Success "Failed to switch main"
 
-$p1 = Start-Process cargo `
-    -ArgumentList "build --release" `
-    -NoNewWindow `
-    -PassThru
-
-$p2 = Start-Process cargo `
-    -ArgumentList "install --path ./xsc-cli" `
-    -NoNewWindow `
-    -PassThru
-
-$wslPath = wsl wslpath (Get-Location).Path
-
-$p3 = Start-Process wsl `
-    -ArgumentList "bash -lc `"cd '$wslPath' && cargo build --release`"" `
-    -NoNewWindow `
-    -PassThru
-
-Wait-Process $p1, $p2, $p3
-
-if (
-    $p1.ExitCode -ne 0 -or
-    $p2.ExitCode -ne 0 -or
-    $p3.ExitCode -ne 0
-) {
-    Write-Host "One or more builds failed"
-    exit 1
-}
-
 python bumpver.py
 Assert-Success "bumpver.py failed"
+
+cargo build --release
+Assert-Success "Cargo build failed"
+
+cargo install --path ./xsc-cli
+Assert-Success "Cargo install failed"
+
+wsl --cd "$($PWD.Path)" bash -lc "cargo build --release"
+Assert-Success "WSL build failed"
 
 git add .
 git commit -m "Bumpver"
@@ -73,7 +54,7 @@ if (git tag -l $tag) {
     exit 1
 }
 
-git tag $tag
+git tag -a $tag -m "Release $tag"
 
 git push
 Assert-Success "Git push failed"
@@ -121,7 +102,7 @@ if (git tag -l $tag) {
     exit 1
 }
 
-git tag $tag
+git tag -a $tag -m "Release $tag"
 
 git push
 Assert-Success "VSC push failed"
