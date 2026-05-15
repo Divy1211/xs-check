@@ -113,4 +113,10 @@ Assert-Success "VSC push failed"
 Write-Host ""
 Write-Host "Build pipeline completed successfully"
 
+Set-Location "../../My Stuff/web dev/VSCE/aoe2xsscripting"
+
+explorer .
+
 Set-Location $PSScriptRoot
+
+explorer "target\release"
