@@ -112,3 +112,5 @@ Assert-Success "VSC push failed"
 
 Write-Host ""
 Write-Host "Build pipeline completed successfully"
+
+Set-Location $PSScriptRoot
