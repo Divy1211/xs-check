@@ -35,7 +35,11 @@ fn main() {
         if errs.is_empty() {
             continue;
         } else if filepath == &prelude_path {
-            panic!("Prelude can't produce errors")
+            if errs.iter().any(|err| !err.is_warning()) {
+                panic!("Prelude can't produce errors")
+            } else {
+                continue;
+            }
         }
         let new_errs = print_xs_errs(filepath, errs, &ignores);
         has_errors = has_errors || new_errs;
