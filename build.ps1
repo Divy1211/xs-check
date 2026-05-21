@@ -1,3 +1,24 @@
+param(
+    [string]$XscTag,
+    [string]$VscTag
+)
+
+if (-not $XscTag) {
+    $XscTag = Read-Host "XSC enter Release Tag"
+    if ([string]::IsNullOrWhiteSpace($XscTag)) {
+        Write-Host "No tag provided, aborting"
+        exit 1
+    }
+}
+
+if (-not $VscTag) {
+    $VscTag = Read-Host "VSC enter Release Tag"
+    if ([string]::IsNullOrWhiteSpace($VscTag)) {
+        Write-Host "No tag provided, aborting"
+        exit 1
+    }
+}
+
 $ErrorActionPreference = "Stop"
 
 Set-Location $PSScriptRoot
@@ -43,11 +64,7 @@ git add .
 git commit -m "Bumpver"
 Assert-Success "Git commit failed"
 
-$tag = Read-Host "XSC Enter release tag (e.g. v1.2.3-alpha)"
-if ([string]::IsNullOrWhiteSpace($tag)) {
-    Write-Host "No tag provided, aborting"
-    exit 1
-}
+$tag = $XscTag
 
 if (git tag -l $tag) {
     Write-Host "Tag already exists"
@@ -91,11 +108,7 @@ git add .
 git commit -m "Bumpver"
 Assert-Success "VSC commit failed"
 
-$tag = Read-Host "VSC Enter release tag (e.g. v1.2.3-alpha)"
-if ([string]::IsNullOrWhiteSpace($tag)) {
-    Write-Host "No tag provided, aborting"
-    exit 1
-}
+$tag = $VscTag
 
 if (git tag -l $tag) {
     Write-Host "Tag already exists"
