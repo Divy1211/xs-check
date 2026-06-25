@@ -20,6 +20,10 @@ pub enum Type {
 }
 
 impl Type {
+    pub fn is_concrete(&self) -> bool {
+        matches!(self, Type::Int | Type::Float | Type::Bool | Type::Str | Type::Vec)
+    }
+
     pub fn from_tok(tok: Token) -> Self {
         match tok {
             Token::Int    => Type::Int,
@@ -47,8 +51,9 @@ impl Display for Type {
             Type::Rule => write!(f, "rule"),
             Type::Fn { is_mutable, type_sign} => write!(
                 f,
-                "{}{}",
+                "{}{}{}",
                 if *is_mutable { "mut " } else { "" },
+                if type_sign.len() == 1 { "() -> " } else { "" },
                 type_sign
                     .iter()
                     .map(|type_| type_.1.to_string())

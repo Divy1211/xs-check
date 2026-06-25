@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use crate::parsing::ast::{Expr, Literal, Type};
 use crate::parsing::span::Spanned;
 use crate::r#static::info::{IdInfo, TypeEnv, XsError};
-use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_num_lit, type_cmp};
+use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_num_lit, type_cmp, get_broken_path_name};
 
 pub fn xs_tc_expr(
     path: &PathBuf,
@@ -20,10 +20,21 @@ pub fn xs_tc_expr(
         Literal::Str(_) => { Some(Type::Str) }
     }
     Expr::Identifier(id) => {
-        let Some(IdInfo { type_, ..}) = type_env.get(id) else {
+        let Some(IdInfo { type_, modifiers, src_loc, ..}) = type_env.get(id) else {
             type_env.add_err(path, XsError::undefined_name(id, span));
             return None;
         };
+        if type_.is_concrete() {
+            let current_file = get_broken_path_name(path);
+            let def_file = get_broken_path_name(&src_loc.file_path);
+            if current_file != def_file && !modifiers.is_extern() {
+                type_env.add_err(path, XsError::private_name(
+                    id,
+                    span,
+                    &src_loc,
+                ));
+            }
+        }
         Some(type_)
     }
     Expr::Paren(expr) => { xs_tc_expr(path, expr, type_env) }

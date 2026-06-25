@@ -83,6 +83,17 @@ pub fn xs_errs_to_diags(
                         span
                     )
                 }
+                XsError::PrivateName { name, span, src_loc } => {
+                    (
+                        "PrivateName",
+                        format!("Name {} is private in file {}. Consider using {} if needed",
+                            name,
+                            src_loc.file_path.file_name().unwrap_or_default().to_string_lossy(),
+                            "extern",
+                        ),
+                        span
+                    )
+                }
                 XsError::RedefinedName { name, span, note, og_src_loc: _ } => {
                     let msg = match note {
                         None => {

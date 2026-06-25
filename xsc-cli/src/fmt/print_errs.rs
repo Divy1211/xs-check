@@ -73,6 +73,18 @@ pub fn print_xs_errs(path: &PathBuf, errs: &Vec<XsError>, ignores: &HashSet<u32>
                         .with_color(highlight)
                 )
             }
+            XsError::PrivateName { name, span, src_loc } => {
+                report.with_label(
+                    Label::new((filename, span.start..span.end))
+                        .with_message(format!(
+                            "Name {} is private in file {}. Consider using {} if needed",
+                            name.fg(names),
+                            src_loc.file_path.file_name().unwrap_or_default().to_string_lossy(),
+                            "extern".fg(kwds),
+                        ))
+                        .with_color(highlight)
+                )
+            }
             XsError::RedefinedName { name, span, note, .. } => {
                 let report = report.with_label(
                     Label::new((filename, span.start..span.end))

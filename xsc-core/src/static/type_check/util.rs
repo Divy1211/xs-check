@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use chumsky::container::{Container};
 
@@ -308,4 +308,9 @@ pub fn chk_rule_opt<'src>(
         opt_spans.push((opt_type, opt_span));
         true
     }
+}
+
+// yES...
+pub fn get_broken_path_name(path: &Path) -> &str {
+    path.to_str().unwrap_or("").split(".").next().unwrap_or("")
 }

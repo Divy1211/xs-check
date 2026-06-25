@@ -19,7 +19,7 @@ use crate::r#static::info::{
     XsError,
 };
 use crate::r#static::type_check::expression::xs_tc_expr;
-use crate::r#static::type_check::util::{chk_rule_opt, combine_results, type_cmp};
+use crate::r#static::type_check::util::{chk_rule_opt, combine_results, get_broken_path_name, type_cmp};
 
 #[allow(clippy::too_many_arguments)]
 pub fn xs_tc_stmt(
@@ -163,11 +163,6 @@ match stmt {
             return Ok(())
         };
         result
-        // todo: relative imports are not a thing
-        // let mut inc_path = path.clone();
-        // inc_path.pop();
-        // inc_path.push(&filename[1..(filename.len()-1)]);
-        // gen_errs_from_path(&inc_path, type_env)
     }
     AstNode::VarDef {
         is_export,
@@ -180,15 +175,17 @@ match stmt {
     } => {
         let (name, name_span) = spanned_name;
         match type_env.get(name) {
-            Some(IdInfo { src_loc: og_src_loc, ..}) => {
+            Some(IdInfo { src_loc, modifiers, .. })
+            if modifiers.is_extern() || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
+            => {
                 type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
-                    &og_src_loc,
+                    &src_loc,
                     None,
                 ))
             }
-            None => {
+            _ => {
                 type_env.set(name, IdInfo::from_with_mods(
                     type_,
                     SrcLoc::from(path, name_span),
@@ -359,13 +356,25 @@ match stmt {
             _ => {}
         }
 
-        let Some(IdInfo { type_, modifiers, .. }) = type_env.get(name) else {
+        let Some(IdInfo { type_, modifiers, src_loc, .. }) = type_env.get(name) else {
             type_env.add_err(path, XsError::undefined_name(
                 name,
                 name_span,
             ));
             return Ok(());
         };
+
+        if type_.is_concrete() {
+            let current_file = get_broken_path_name(path);
+            let def_file = get_broken_path_name(&src_loc.file_path);
+            if current_file != def_file && !modifiers.is_extern() {
+                type_env.add_err(path, XsError::private_name(
+                    name,
+                    name_span,
+                    &src_loc,
+                ));
+            }
+        }
 
         if modifiers.is_const() {
             type_env.add_err(path, XsError::syntax(
@@ -776,6 +785,7 @@ match stmt {
         else { unreachable!("XSC Internal Error while type checking For at {}", var.as_ref().1) };
 
         let mut do_err = false;
+        let mut actual_type = Type::Int;
         let mut do_set = true;
         if let Some(id_info) = type_env.get_mut(name) {
             if id_info.modifiers.is_const() {
@@ -783,8 +793,17 @@ match stmt {
             } else {
                 id_info.make_const();
             }
+            actual_type = id_info.type_.clone();
             do_set = false;
         };
+        if actual_type != Type::Int {
+            type_env.add_err(path, XsError::type_mismatch(
+                &actual_type.to_string(),
+                "int",
+                name_span,
+                None,
+            ));
+        }
         if do_err {
             type_env.add_err(path, XsError::syntax(
                 assign_span,

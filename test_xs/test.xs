@@ -1,8 +1,6 @@
-rule test {}
+include "test2.xs";
 
 void main() {
-    int a = a;
-    test();
-    int b = test();
-    test(1);
+    test = -1;
+    func();
 }

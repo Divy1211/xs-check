@@ -14,6 +14,7 @@ pub enum XsError {
 
     // name errors
     UndefinedName { name: String, span: Span },
+    PrivateName { name: String, span: Span, src_loc: SrcLoc },
     RedefinedName { name: String, span: Span, og_src_loc: SrcLoc, note: Option<String> },
 
     UnresolvedInclude { inc_filename: String, span: Span },
@@ -85,6 +86,14 @@ impl XsError {
         }
     }
 
+    pub fn private_name(name: &Identifier, span: &Span, src_loc: &SrcLoc) -> XsError {
+        XsError::PrivateName {
+            name: String::from(&name.0),
+            span: *span,
+            src_loc: src_loc.clone(),
+        }
+    }
+
     pub fn redefined_name(name: &Identifier, span: &Span, og_src_loc: &SrcLoc, note: Option<&str>) -> XsError {
         XsError::RedefinedName {
             name: String::from(&name.0),
@@ -126,6 +135,7 @@ impl XsError {
             XsError::NotCallable { span, .. } => { span }
             XsError::OpMismatch { span, .. } => { span }
             XsError::UndefinedName { span, .. } => { span }
+            XsError::PrivateName { span, .. } => { span }
             XsError::RedefinedName { span, .. } => { span }
             XsError::UnresolvedInclude { span, .. } => { span }
             XsError::Syntax { span, .. } => { span }
@@ -148,6 +158,7 @@ impl XsError {
             XsError::OpMismatch { .. } => { "TypeError" }
 
             XsError::UndefinedName { .. } => { "NameError" }
+            XsError::PrivateName { .. } => { "NameError" }
             XsError::RedefinedName { .. } => { "NameError" }
 
             XsError::UnresolvedInclude { .. } => { "UnresolvedInclude" }
@@ -176,9 +187,10 @@ impl XsError {
             XsError::NotCallable { .. } => { 2 }
             XsError::OpMismatch { .. } => { 3 }
             XsError::UndefinedName { .. } => { 4 }
-            XsError::RedefinedName { .. } => { 5 }
-            XsError::UnresolvedInclude { .. } => { 6 }
-            XsError::Syntax { .. } => { 7 }
+            XsError::PrivateName { .. } => { 5 }
+            XsError::RedefinedName { .. } => { 6 }
+            XsError::UnresolvedInclude { .. } => { 7 }
+            XsError::Syntax { .. } => { 8 }
             XsError::Warning { kind, .. } => { kind.as_u32() }
         }
     }
