@@ -52,7 +52,7 @@ impl Expr {
     }
 }
 
-fn render(v: &Box<Spanned<Expr>>) -> String {
-    let (v, _span) = v.as_ref();
+fn render(v: &Spanned<Expr>) -> String {
+    let (v, _span) = v;
     v.lit_str().unwrap_or("???".into())
 }

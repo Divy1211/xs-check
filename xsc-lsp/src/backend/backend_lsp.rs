@@ -109,7 +109,7 @@ impl LanguageServer for Backend {
                     *src = Rope::from(change.text);
                 }
                 Some(range) => {
-                    let span = span_from_pos(&src, &range.start, &range.end);
+                    let span = span_from_pos(src, &range.start, &range.end);
 
                     src.remove(span.start..span.end);
                     src.insert(span.start, &change.text);
@@ -165,7 +165,7 @@ impl LanguageServer for Backend {
         Ok(Some(Hover {
             contents: HoverContents::Markup(MarkupContent {
                 kind: MarkupKind::Markdown,
-                value: info.doc.render(&id, &info),
+                value: info.doc.render(&id, info),
             }),
             range: None,
         }))
@@ -220,9 +220,9 @@ impl LanguageServer for Backend {
                     insert_text_format: Some(InsertTextFormat::SNIPPET),
                     documentation: Some(Documentation::MarkupContent(MarkupContent {
                         kind: MarkupKind::Markdown,
-                        value: info.doc.render(&id, &info),
+                        value: info.doc.render(id, info),
                     })),
-                    deprecated: None,
+                    deprecated: info.doc.deprecation_reason().map(|_reason| true),
                     ..Default::default()
                 }
             }).collect();
