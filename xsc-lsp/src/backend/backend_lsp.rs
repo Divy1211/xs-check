@@ -3,7 +3,7 @@ use std::collections::{HashSet};
 use std::path::PathBuf;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
-use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, Documentation, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InsertTextFormat, Location, MarkupContent, MarkupKind, OneOf, Range, SemanticTokens, SemanticTokensFullOptions, SemanticTokensOptions, SemanticTokensParams, SemanticTokensResult, SemanticTokensServerCapabilities, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, Documentation, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InlayHint, InlayHintParams, InsertTextFormat, Location, MarkupContent, MarkupKind, OneOf, Range, SemanticTokens, SemanticTokensFullOptions, SemanticTokensOptions, SemanticTokensParams, SemanticTokensResult, SemanticTokensServerCapabilities, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
 
 use ropey::Rope;
 
@@ -11,6 +11,7 @@ use xsc_core::parsing::ast::{Type};
 
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::{pos_from_span, span_from_pos};
+use crate::inlay_hints::gen_inlay_hints;
 use crate::semantic_tokens::{get_semantic_token_legend, gen_tokens};
 use crate::utils::{path_from_uri};
 
@@ -39,6 +40,7 @@ impl LanguageServer for Backend {
                 }),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 definition_provider: Some(OneOf::Left(true)),
+                inlay_hint_provider: Some(OneOf::Left(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -171,8 +173,20 @@ impl LanguageServer for Backend {
             .or(fallback.as_ref())
             .expect("one value exists");
 
-        let range = pos_from_span(&src, &info.src_loc.span);
+        let range = pos_from_span(src, &info.src_loc.span);
         Ok(Some(GotoDefinitionResponse::Scalar(Location::new(url.clone(), Range::new(range.0, range.1)))))
+    }
+
+    async fn inlay_hint(&self, params: InlayHintParams) -> tower_lsp::jsonrpc::Result<Option<Vec<InlayHint>>> {
+        let uri = params.text_document.uri;
+        let range = params.range;
+        let path = path_from_uri(&uri);
+        let (_uri, src) = &*self.editors.get(&path).expect("Cached before inlay_hint");
+        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before inlay_hint");
+
+        let env = &*self.env_cache.get(&path).expect("Cached before inlay_hint");
+
+        Ok(Some(gen_inlay_hints(src, ast, env, range)))
     }
 
     async fn hover(&self, params: HoverParams) -> tower_lsp::jsonrpc::Result<Option<Hover>> {

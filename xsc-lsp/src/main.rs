@@ -6,6 +6,7 @@ mod fmt;
 mod utils;
 mod backend;
 mod semantic_tokens;
+mod inlay_hints;
 
 use backend::backend::Backend;
 
