@@ -177,18 +177,6 @@ impl LanguageServer for Backend {
         Ok(Some(GotoDefinitionResponse::Scalar(Location::new(url.clone(), Range::new(range.0, range.1)))))
     }
 
-    async fn inlay_hint(&self, params: InlayHintParams) -> tower_lsp::jsonrpc::Result<Option<Vec<InlayHint>>> {
-        let uri = params.text_document.uri;
-        let range = params.range;
-        let path = path_from_uri(&uri);
-        let (_uri, src) = &*self.editors.get(&path).expect("Cached before inlay_hint");
-        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before inlay_hint");
-
-        let env = &*self.env_cache.get(&path).expect("Cached before inlay_hint");
-
-        Ok(Some(gen_inlay_hints(src, ast, env, range)))
-    }
-
     async fn hover(&self, params: HoverParams) -> tower_lsp::jsonrpc::Result<Option<Hover>> {
         let uri = params.text_document_position_params.text_document.uri;
         let pos = params.text_document_position_params.position;
@@ -197,16 +185,16 @@ impl LanguageServer for Backend {
         let (_url, src) = &*self.editors.get(&path).expect("Cached before hover");
         let id = self.get_id(src, &pos);
         let span = span_from_pos(src, &pos, &pos);
-        
+
         let env = &*self.env_cache.get(&path).expect("Cached before hover");
-        
+
         let info = env.identifiers.get(&id)
             .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
-        
+
         let Some(info) = info else {
             return Ok(None);
         };
-        
+
         Ok(Some(Hover {
             contents: HoverContents::Markup(MarkupContent {
                 kind: MarkupKind::Markdown,
@@ -228,6 +216,18 @@ impl LanguageServer for Backend {
             result_id: None,
             data: gen_tokens(src, ast, env),
         })))
+    }
+
+    async fn inlay_hint(&self, params: InlayHintParams) -> tower_lsp::jsonrpc::Result<Option<Vec<InlayHint>>> {
+        let uri = params.text_document.uri;
+        let range = params.range;
+        let path = path_from_uri(&uri);
+        let (_uri, src) = &*self.editors.get(&path).expect("Cached before inlay_hint");
+        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before inlay_hint");
+
+        let env = &*self.env_cache.get(&path).expect("Cached before inlay_hint");
+
+        Ok(Some(gen_inlay_hints(src, ast, env, range)))
     }
 
     async fn completion(&self, params: CompletionParams) -> tower_lsp::jsonrpc::Result<Option<CompletionResponse>> {
