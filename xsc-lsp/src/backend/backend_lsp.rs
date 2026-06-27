@@ -1,46 +1,16 @@
 use std::default::Default;
 use std::collections::{HashSet};
+use std::path::PathBuf;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
-use tower_lsp::lsp_types::{
-    CompletionItem,
-    CompletionItemKind,
-    CompletionOptions,
-    CompletionParams,
-    CompletionResponse,
-    DidChangeConfigurationParams,
-    DidChangeTextDocumentParams,
-    DidCloseTextDocumentParams,
-    DidOpenTextDocumentParams,
-    Documentation,
-    Hover,
-    HoverContents,
-    HoverParams,
-    HoverProviderCapability,
-    InitializeParams,
-    InitializeResult,
-    InitializedParams,
-    InsertTextFormat,
-    MarkupContent,
-    MarkupKind,
-    SemanticTokens,
-    SemanticTokensFullOptions,
-    SemanticTokensOptions,
-    SemanticTokensParams,
-    SemanticTokensResult,
-    SemanticTokensServerCapabilities,
-    ServerCapabilities,
-    ServerInfo,
-    TextDocumentSyncCapability,
-    TextDocumentSyncKind
-};
+use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, Documentation, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InsertTextFormat, Location, MarkupContent, MarkupKind, OneOf, Range, SemanticTokens, SemanticTokensFullOptions, SemanticTokensOptions, SemanticTokensParams, SemanticTokensResult, SemanticTokensServerCapabilities, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
 
 use ropey::Rope;
 
 use xsc_core::parsing::ast::{Type};
 
 use crate::backend::backend::Backend;
-use crate::fmt::pos_info::span_from_pos;
+use crate::fmt::pos_info::{pos_from_span, span_from_pos};
 use crate::semantic_tokens::{get_semantic_token_legend, gen_tokens};
 use crate::utils::{path_from_uri};
 
@@ -68,6 +38,7 @@ impl LanguageServer for Backend {
                     ..Default::default()
                 }),
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
+                definition_provider: Some(OneOf::Left(true)),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -142,6 +113,66 @@ impl LanguageServer for Backend {
         if uri.to_file_path().is_err() {
             self.remove_entry(&path);
         }
+    }
+
+    async fn goto_definition(&self, params: GotoDefinitionParams) -> tower_lsp::jsonrpc::Result<Option<GotoDefinitionResponse>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        let path = path_from_uri(&uri);
+
+        let (_url, src) = &*self.editors.get(&path).expect("Cached before def");
+        let id = self.get_id(src, &pos);
+        let span = span_from_pos(src, &pos, &pos);
+
+        let env = &*self.env_cache.get(&path).expect("Cached before def");
+
+        let info = env.identifiers.get(&id)
+            .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
+
+        let Some(info) = info else {
+            return Ok(None);
+        };
+
+        let config = self.config
+            .get()
+            .expect("Initialized")
+            .read()
+            .await;
+
+        let prelude_path = PathBuf::from(r"prelude.xs");
+        if info.src_loc.file_path == prelude_path || info.src_loc.file_path == *config.extra_prelude_path.as_ref().unwrap_or(&prelude_path) {
+            return Ok(None);
+        }
+
+        let fallback: Option<(Url, Rope)>;
+        let guard: Option<dashmap::mapref::one::Ref<'_, PathBuf, (Url, Rope)>>;
+
+        match self.editors.get(&info.src_loc.file_path) {
+            Some(ref_) => {
+                fallback = None;
+                guard = Some(ref_);
+            },
+            None => {
+                let Ok(url) = Url::from_file_path(&info.src_loc.file_path) else {
+                    return Ok(None);
+                };
+                let Ok(src) = std::fs::read_to_string(&info.src_loc.file_path) else {
+                    return Ok(None);
+                };
+
+                // did_open will cache this
+                fallback = Some((url, Rope::from_str(&src)));
+                guard = None;
+            }
+        };
+        let (url, src) = guard
+            .as_ref()
+            .map(|g| g.value())
+            .or(fallback.as_ref())
+            .expect("one value exists");
+
+        let range = pos_from_span(&src, &info.src_loc.span);
+        Ok(Some(GotoDefinitionResponse::Scalar(Location::new(url.clone(), Range::new(range.0, range.1)))))
     }
 
     async fn hover(&self, params: HoverParams) -> tower_lsp::jsonrpc::Result<Option<Hover>> {

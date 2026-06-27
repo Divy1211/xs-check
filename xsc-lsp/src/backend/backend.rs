@@ -21,7 +21,7 @@ pub type EnvCache = DashMap<PathBuf, TypeEnv>;
 
 pub struct Backend {
     client: Client,
-    config: Arc<OnceLock<RwLock<ExtConfig>>>,
+    pub config: Arc<OnceLock<RwLock<ExtConfig>>>,
     prelude_env: Arc<OnceLock<RwLock<TypeEnv>>>,
     pub editors: SrcCache,
     pub ast_cache: AstCache,
