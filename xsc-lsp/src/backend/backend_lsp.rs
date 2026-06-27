@@ -3,12 +3,12 @@ use std::collections::{HashSet};
 use std::path::PathBuf;
 use async_trait::async_trait;
 use tower_lsp::LanguageServer;
-use tower_lsp::lsp_types::{CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, Documentation, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InlayHint, InlayHintParams, InsertTextFormat, Location, MarkupContent, MarkupKind, OneOf, Range, SemanticTokens, SemanticTokensFullOptions, SemanticTokensOptions, SemanticTokensParams, SemanticTokensResult, SemanticTokensServerCapabilities, ServerCapabilities, ServerInfo, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
+use tower_lsp::lsp_types::{Command, CompletionItem, CompletionItemKind, CompletionOptions, CompletionParams, CompletionResponse, DidChangeConfigurationParams, DidChangeTextDocumentParams, DidCloseTextDocumentParams, DidOpenTextDocumentParams, Documentation, GotoDefinitionParams, GotoDefinitionResponse, Hover, HoverContents, HoverParams, HoverProviderCapability, InitializeParams, InitializeResult, InitializedParams, InlayHint, InlayHintParams, InsertTextFormat, Location, MarkupContent, MarkupKind, OneOf, ParameterInformation, ParameterLabel, Range, SemanticTokens, SemanticTokensFullOptions, SemanticTokensOptions, SemanticTokensParams, SemanticTokensResult, SemanticTokensServerCapabilities, ServerCapabilities, ServerInfo, SignatureHelp, SignatureHelpOptions, SignatureHelpParams, SignatureInformation, TextDocumentSyncCapability, TextDocumentSyncKind, Url};
 
 use ropey::Rope;
 
 use xsc_core::parsing::ast::{Type};
-
+use xsc_core::r#static::info::IdInfo;
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::{pos_from_span, span_from_pos};
 use crate::inlay_hints::gen_inlay_hints;
@@ -41,6 +41,11 @@ impl LanguageServer for Backend {
                 hover_provider: Some(HoverProviderCapability::Simple(true)),
                 definition_provider: Some(OneOf::Left(true)),
                 inlay_hint_provider: Some(OneOf::Left(true)),
+                signature_help_provider: Some(SignatureHelpOptions {
+                    trigger_characters: Some(vec!["(".into(), ",".into()]),
+                    retrigger_characters: None,
+                    work_done_progress_options: Default::default(),
+                }),
                 ..Default::default()
             },
             server_info: Some(ServerInfo {
@@ -256,7 +261,16 @@ impl LanguageServer for Backend {
                     }
                     _ => { (CompletionItemKind::TEXT, None) }
                 };
-                
+
+                let mut command = None;
+                if kind == CompletionItemKind::FUNCTION {
+                    command = Some(Command {
+                        title: "Trigger Parameter Hints".to_string(),
+                        command: "editor.action.triggerParameterHints".to_string(),
+                        arguments: None,
+                    });
+                }
+
                 CompletionItem {
                     label: id.0.clone(),
                     kind: Some(kind),
@@ -268,11 +282,64 @@ impl LanguageServer for Backend {
                         value: info.doc.render(id, info),
                     })),
                     deprecated: info.doc.deprecation_reason().map(|_reason| true),
+                    command,
                     ..Default::default()
                 }
             }).collect();
 
         Ok(Some(CompletionResponse::Array(ids)))
+    }
+
+    async fn signature_help(&self, params: SignatureHelpParams) -> tower_lsp::jsonrpc::Result<Option<SignatureHelp>> {
+        let uri = params.text_document_position_params.text_document.uri;
+        let pos = params.text_document_position_params.position;
+        let path = path_from_uri(&uri);
+
+        let (_url, src) = &*self.editors.get(&path).expect("Cached before completion");
+        let (fn_name, param_index) = self.get_fn_id(src, &pos);
+
+        let env = &*self.env_cache.get(&path).expect("Cached before completion");
+
+        let Some(IdInfo { type_: Type::Fn { type_sign, .. }, doc, .. }) = &env.get(&fn_name) else {
+            return Ok(None);
+        };
+
+        let label = {
+            let params_str = type_sign[..type_sign.len()-1]
+                .iter()
+                .map(|(name, type_)| format!("{} {}", type_, name.0))
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!("{}({})", fn_name.0, params_str)
+        };
+
+        let mut param_info = Vec::with_capacity(type_sign.len() - 1);
+        let mut offset = fn_name.0.len() + 1;
+
+        for (param_name, param_type) in type_sign[..type_sign.len()-1].iter() {
+            let chunk = format!("{} {}", param_type, param_name.0);
+            let start = offset as u32;
+            let end = (offset + chunk.len()) as u32;
+            param_info.push(ParameterInformation {
+                label: ParameterLabel::LabelOffsets([start, end]),
+                documentation: None,
+            });
+            offset += chunk.len() + 2;
+        }
+
+        Ok(Some(SignatureHelp {
+            signatures: vec![SignatureInformation {
+                label,
+                documentation: Some(Documentation::MarkupContent(MarkupContent {
+                    kind: MarkupKind::Markdown,
+                    value: doc.get_fn_param_info(param_index),
+                })),
+                parameters: Some(param_info),
+                active_parameter: None,
+            }],
+            active_signature: Some(0),
+            active_parameter: Some(param_index),
+        }))
     }
 
     async fn did_change_configuration(&self, _: DidChangeConfigurationParams) {

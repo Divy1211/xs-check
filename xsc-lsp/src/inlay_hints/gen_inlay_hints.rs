@@ -152,9 +152,9 @@ pub fn gen_inlay_hints(src: &Rope, ast: &Vec<Spanned<AstNode>>, env: &TypeEnv, r
 
     let mut hints = Vec::new();
     for node in ast {
-        // if node.1.end < range_span.start || range_span.end < node.1.start {
-        //     continue;
-        // }
+        if node.1.end < range_span.start || range_span.end < node.1.start {
+            continue;
+        }
         xs_hints(node, &mut hints, src, env);
     }
 

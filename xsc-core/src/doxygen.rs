@@ -217,4 +217,19 @@ impl Doc {
             }
         }
     }
+
+    pub fn get_fn_param_info(&self, index: u32) -> String {
+        match self {
+            Doc::FnDesc { params, .. } => {
+                if params.is_empty() {
+                    return "".into();
+                }
+                let mut params = params.iter().collect::<Vec<_>>();
+                params.sort_by_key(|(_id, (idx, _desc))| idx);
+
+                params[index as usize].1.1.clone()
+            }
+            _ => "".into(),
+        }
+    }
 }

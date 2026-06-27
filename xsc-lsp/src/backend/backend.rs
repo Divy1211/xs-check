@@ -165,5 +165,31 @@ impl Backend {
 
         (&line[start..end]).into()
     }
+
+    pub fn get_fn_id(&self, src: &Rope, pos: &Position) -> (Identifier, u32) {
+        let line = src.line(pos.line as usize).to_string();
+        let char_idx = pos.character as usize;
+
+        let mut depth = 0u32;
+        let mut commas = 0u32;
+        let mut end = char_idx;
+        for c in line[..char_idx].chars().rev() {
+            end -= 1;
+            match c {
+                ')' => depth += 1,
+                '(' if depth > 0 => depth -= 1,
+                '(' if depth == 0 => break,
+                ',' => commas += 1,
+                _ => {},
+            }
+        }
+
+        let start = line[..end]
+            .rfind(|c: char| !c.is_alphanumeric() && c != '_')
+            .map(|i| i + 1)
+            .unwrap_or(0);
+
+        ((&line[start..end]).into(), commas)
+    }
 }
 
