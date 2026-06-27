@@ -195,7 +195,7 @@ impl Doc {
             Doc::FnDesc { desc, params, returns, deprecated, .. } => {
                 let mut doc = format!(
                     "{}\n\n{}{}", sign,
-                    deprecated.as_ref().map(|reason| format!("**Deprecated**:\n\n{reason}\n\n")).unwrap_or("".into()),
+                    deprecated.as_ref().map(|reason| format!("**Deprecated**:\n\n{reason}\n\n**Description**:\n\n")).unwrap_or("".into()),
                     desc.clone()
                 );
                 if !params.is_empty() {
