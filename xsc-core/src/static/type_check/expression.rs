@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use crate::parsing::ast::{Expr, Literal, Type};
 use crate::parsing::span::Spanned;
-use crate::r#static::info::{IdInfo, TypeEnv, XsError};
+use crate::r#static::info::{IdInfo, TypeEnv, WarningKind, XsError};
 use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_num_lit, type_cmp, get_broken_path_name};
 
 pub fn xs_tc_expr(
@@ -20,7 +20,7 @@ pub fn xs_tc_expr(
         Literal::Str(_) => { Some(Type::Str) }
     }
     Expr::Identifier(id) => {
-        let Some(IdInfo { type_, modifiers, src_loc, ..}) = type_env.get(id) else {
+        let Some(IdInfo { type_, modifiers, src_loc, doc, ..}) = type_env.get(id) else {
             type_env.add_err(path, XsError::undefined_name(id, span));
             return None;
         };
@@ -35,6 +35,14 @@ pub fn xs_tc_expr(
                 ));
             }
         }
+        if let Some(reason) = doc.deprecation_reason() {
+            type_env.add_err(path, XsError::warning(
+                span,
+                reason,
+                vec![],
+                WarningKind::Deprecated,
+            ));
+        };
         Some(type_)
     }
     Expr::Paren(expr) => { xs_tc_expr(path, expr, type_env) }
@@ -45,12 +53,20 @@ pub fn xs_tc_expr(
         Some(Type::Vec)
     }
     Expr::FnCall { name: (name, name_span), args } => {
-        let Some(IdInfo { type_, .. }) = type_env.get(name) else {
+        let Some(IdInfo { type_, doc, .. }) = type_env.get(name) else {
             type_env.add_err(path, XsError::undefined_name(name, name_span));
             for arg in args {
                 xs_tc_expr(path, arg, type_env);
             }
             return None;
+        };
+        if let Some(reason) = doc.deprecation_reason() {
+            type_env.add_err(path, XsError::warning(
+                name_span,
+                reason,
+                vec![],
+                WarningKind::Deprecated,
+            ));
         };
         let type_sign = match type_ {
             Type::Fn { type_sign, .. } => type_sign,
@@ -67,12 +83,30 @@ pub fn xs_tc_expr(
                 return None;
             },
         };
-        for (param_type, arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
+        for ((param_name, param_type), arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
             let Some(arg_type) = xs_tc_expr(path, arg_expr, type_env) else {
                 // expr will generate its own error if the type cannot be inferred
                 continue;
             };
-            type_env.add_errs(path, type_cmp(&param_type.1, &arg_type, &arg_expr.1, true, false));
+            if let (Expr::Identifier(arg_name), arg_span) = arg_expr && arg_name.0.len() > 1 { 'arg_name_check: {
+                if arg_name.0.to_ascii_lowercase().contains(&param_name.0.to_ascii_lowercase()) {
+                    break 'arg_name_check;
+                }
+                for (param_name, _param_type) in type_sign[..type_sign.len()-1].iter() {
+                    if param_name.0.len() <= 1 {
+                        continue;
+                    }
+                    if arg_name.0.to_ascii_lowercase().contains(&param_name.0.to_ascii_lowercase()) {
+                        type_env.add_err(path, XsError::warning(
+                            arg_span,
+                            "This argument is potentially being passed to the wrong parameter",
+                            vec![],
+                            WarningKind::SwappedParams,
+                        ));
+                    }
+                }
+            }}
+            type_env.add_errs(path, type_cmp(param_type, &arg_type, &arg_expr.1, true, false, doc.is_no_num_promo()));
         }
         if args.len() >= type_sign.len() {
             for (_expr, span) in args[type_sign.len() - 1..].iter() {

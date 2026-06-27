@@ -39,6 +39,8 @@ pub enum WarningKind {
     FloatMod = 110,
     InfLoopLim = 111,
     InfRecLim = 112,
+    Deprecated = 113,
+    SwappedParams = 114,
 
     InvalidExternDecl = 999,
     UnknownWarningName = 1000,
@@ -216,6 +218,8 @@ impl WarningKind {
             WarningKind::FloatMod            => "FloatMod",
             WarningKind::InfLoopLim          => "InfLoopLim",
             WarningKind::InfRecLim           => "InfRecLim",
+            WarningKind::Deprecated          => "Deprecated",
+            WarningKind::SwappedParams       => "SwappedParams",
             WarningKind::InvalidExternDecl   => "InvalidExternDecl",
             WarningKind::UnknownWarningName  => "UnknownWarningName",
         }
@@ -236,8 +240,10 @@ impl WarningKind {
             "FloatMod"            => Some(WarningKind::FloatMod),
             "InfLoopLim"          => Some(WarningKind::InfLoopLim),
             "InfRecLim"           => Some(WarningKind::InfRecLim),
+            "Deprecated"          => Some(WarningKind::Deprecated),
+            "SwappedParams"       => Some(WarningKind::SwappedParams),
 
-            // InvalidExternDecl and UnknownWarningName cannot be ignored, so it is exlcuded here
+            // InvalidExternDecl and UnknownWarningName cannot be ignored, so it is excluded here
             _                     => None
         }
     }

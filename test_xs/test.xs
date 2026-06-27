@@ -1,6 +1,9 @@
-include "test2.xs";
+void setWin(int width = -1, int height = -1) {
 
-void main() {
-    test = -1;
-    func();
+}
+
+void tt() {
+    int windowHeight = 100;
+    int windowWidth = 100;
+    setWin(windowHeight, windowWidth);
 }

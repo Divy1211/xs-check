@@ -241,6 +241,7 @@ pub fn type_cmp(
     actual_span: &Span,
     is_fn_call: bool,
     is_case_expr: bool,
+    no_num_promo: bool,
 ) -> Vec<XsError> {
     let mut errs = vec![];
     match (expected, actual) {
@@ -262,7 +263,7 @@ pub fn type_cmp(
                 WarningKind::NumDownCast,
             ));
         }
-        (Type::Float, Type::Int | Type::Bool) => if is_fn_call {
+        (Type::Float, Type::Int | Type::Bool) => if is_fn_call && no_num_promo {
             errs.push(XsError::warning(
                 actual_span,
                 "Intermediate {0} or {1} values do not get promoted to {2} in a \

@@ -80,15 +80,17 @@ pub fn xs_tc_stmt(
 
             let name = Identifier(decl[1].to_string());
             match type_env.get(&name) {
-                Some(IdInfo { src_loc: og_src_loc, ..}) => {
+                Some(IdInfo { src_loc, modifiers, ..})
+                if modifiers.is_extern() || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
+                => {
                     type_env.add_err(path, XsError::redefined_name(
                         &name,
                         span,
-                        &og_src_loc,
+                        &src_loc,
                         None,
                     ))
                 }
-                None => {
+                _ => {
                     type_env.set(&name, IdInfo::from_with_mods(
                         &type_,
                         SrcLoc::from(path, com_span),
@@ -318,7 +320,7 @@ match stmt {
             return Ok(());
         };
 
-        type_env.add_errs(path, type_cmp(type_, &init_type, expr_span, false, false));
+        type_env.add_errs(path, type_cmp(type_, &init_type, expr_span, false, false, false));
         
         Ok(())
     }
@@ -389,7 +391,7 @@ match stmt {
             return Ok(());
         };
 
-        type_env.add_errs(path, type_cmp(&type_, &init_type, &spanned_expr.1, false, false));
+        type_env.add_errs(path, type_cmp(&type_, &init_type, &spanned_expr.1, false, false, false));
 
         Ok(())
     },
@@ -581,6 +583,7 @@ match stmt {
                 &param_default_value_type,
                 expr_span,
                 false,
+                false,
                 false
             ));
         }
@@ -696,7 +699,7 @@ match stmt {
             return Ok(());
         };
 
-        type_env.add_errs(path, type_cmp(&return_type, &return_expr_type, expr_span, false, false));
+        type_env.add_errs(path, type_cmp(&return_type, &return_expr_type, expr_span, false, false, false));
 
         Ok(())
     },
@@ -813,7 +816,7 @@ match stmt {
         }
 
         if let Some(value_type) = xs_tc_expr(path, value, type_env) {
-            type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false));
+            type_env.add_errs(path, type_cmp(&Type::Int, &value_type, &value.1, false, false, false));
         }
 
         if do_set {
@@ -858,7 +861,7 @@ match stmt {
 
         // expression generates its own error for a None return
         if let Some(clause_type) = xs_tc_expr(path, clause, type_env) {
-            type_env.add_errs(path, type_cmp(&Type::Int, &clause_type, &clause.1, false, false));
+            type_env.add_errs(path, type_cmp(&Type::Int, &clause_type, &clause.1, false, false, false));
         }
 
         let mut default_span: Option<&Span> = None;
@@ -897,7 +900,7 @@ match stmt {
             };
             let (case_expr, case_expr_span) = spanned_case_expr;
             if let Some(clause_type) = xs_tc_expr(path, spanned_case_expr, type_env) {
-                type_env.add_errs(path, type_cmp(&Type::Int, &clause_type, case_expr_span, false, true));
+                type_env.add_errs(path, type_cmp(&Type::Int, &clause_type, case_expr_span, false, true, false));
             }
             if let Some(&og_span) = case_spans.get(case_expr) {
                 type_env.add_err(path, XsError::warning(
@@ -1026,7 +1029,7 @@ match stmt {
             return Ok(());
         };
 
-        type_env.add_errs(path, type_cmp(&Type::Label, &id_type, id_span, false, false));
+        type_env.add_errs(path, type_cmp(&Type::Label, &id_type, id_span, false, false, false));
 
         Ok(())
     },
@@ -1051,7 +1054,7 @@ match stmt {
 
         let nodiscard = type_env.get(&name.0).map(|id| id.doc.is_nodiscard()).unwrap_or(true);
 
-        // an unknown identifier error will be issued by xs_tc_expr when needed
+        // an unknown identifier/deprecation error will be issued by xs_tc_expr when needed
         let return_value_type = xs_tc_expr(path, spanned_expr, type_env).unwrap_or(Type::Void);
 
         if Type::Void == return_value_type || !nodiscard {
@@ -1189,7 +1192,7 @@ match stmt {
             let Some(init_value_type) = xs_tc_expr(path, init_value, type_env) else {
                 continue;
             };
-            type_env.add_errs(path, type_cmp(type_, &init_value_type, init_value_span, false, false));
+            type_env.add_errs(path, type_cmp(type_, &init_value_type, init_value_span, false, false, false));
         }
 
         type_env.add_err(path, XsError::warning(
