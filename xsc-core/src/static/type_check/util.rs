@@ -8,6 +8,8 @@ use crate::parsing::span::{Span, Spanned};
 use crate::r#static::type_check::expression::xs_tc_expr;
 use crate::r#static::info::{WarningKind, XsError, TypeEnv};
 
+const MAX_STR_LIT_LEN: usize = 255;
+
 pub fn combine_results<T>(results: impl IntoIterator<Item = Result<(), Vec<T>>>) -> Result<(), Vec<T>>  {
     let mut num_errs = 0;
     let errs = results.into_iter()
@@ -39,6 +41,30 @@ pub fn chk_int_lit(val: &i64, span: &Span) -> Vec<XsError> {
     } else {
         vec![]
     }
+}
+
+pub fn chk_str_lit(val: &str, span: &Span) -> Vec<XsError> {
+    let mut errs = vec![];
+    if val.chars().count() > MAX_STR_LIT_LEN + 2 { // 2 for opening and closing quotes
+        errs.push(XsError::syntax(
+            span,
+            &format!("{{0}} literals cannot be longer than {MAX_STR_LIT_LEN} characters"),
+            vec!["string"]
+        ));
+    }
+    match val.char_indices().find(|(_, c)| !c.is_ascii()) {
+        Some((i, c)) => {
+            let start = span.start + i;
+            let end = start + c.len_utf8();
+            errs.push(XsError::syntax(
+                &Span::new(start, end),
+                "{0} literals cannot contain non ASCII characters",
+                vec!["string"]
+            ));
+        }
+        None => {}
+    }
+    errs
 }
 
 pub fn chk_num_lit((expr, span): &Spanned<Expr>, type_env: &TypeEnv, is_neg: bool, is_vec: bool) -> Vec<XsError> {
