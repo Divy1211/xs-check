@@ -80,8 +80,10 @@ pub fn xs_tc_stmt(
 
             let name = Identifier(decl[1].to_string());
             match type_env.get(&name) {
-                Some(IdInfo { src_loc, modifiers, ..})
-                if modifiers.is_extern() || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
+                Some(IdInfo { type_: og_type, src_loc, modifiers, ..})
+                if matches!(og_type, Type::Fn { .. } | Type::Rule)
+                    || modifiers.is_extern()
+                    || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
                 => {
                     type_env.add_err(path, XsError::redefined_name(
                         &name,
@@ -177,8 +179,10 @@ match stmt {
     } => {
         let (name, name_span) = spanned_name;
         match type_env.get(name) {
-            Some(IdInfo { src_loc, modifiers, .. })
-            if modifiers.is_extern() || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
+            Some(IdInfo { type_: og_type, src_loc, modifiers, .. })
+            if matches!(og_type, Type::Fn { .. } | Type::Rule)
+                || modifiers.is_extern()
+                || get_broken_path_name(path) == get_broken_path_name(&src_loc.file_path)
             => {
                 type_env.add_err(path, XsError::redefined_name(
                     name,
