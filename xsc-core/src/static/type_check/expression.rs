@@ -4,7 +4,7 @@ use crate::parsing::ast::{Expr, Literal, Type};
 use crate::parsing::span::Spanned;
 use crate::r#static::info::{IdInfo, TypeEnv, WarningKind, XsError};
 use crate::r#static::type_check::arg_selection_defects::warn_arg_selection_defects;
-use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_num_lit, type_cmp, get_broken_path_name};
+use crate::r#static::type_check::util::{arith_op, logical_op, reln_op, chk_int_lit, chk_str_lit, chk_num_lit, type_cmp, get_broken_path_name};
 
 pub fn xs_tc_expr(
     path: &PathBuf,
@@ -18,7 +18,10 @@ pub fn xs_tc_expr(
         }
         Literal::Float(_) => { Some(Type::Float) }
         Literal::Bool(_) => { Some(Type::Bool) }
-        Literal::Str(_) => { Some(Type::Str) }
+        Literal::Str(val) => {
+            type_env.add_errs(path, chk_str_lit(&val, &span));
+            Some(Type::Str)
+        }
     }
     Expr::Identifier(id) => {
         let Some(IdInfo { type_, modifiers, src_loc, doc, ..}) = type_env.get(id) else {
