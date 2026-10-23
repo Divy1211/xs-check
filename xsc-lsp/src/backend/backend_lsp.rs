@@ -7,7 +7,7 @@ use tower_lsp::lsp_types::{Command, CompletionItem, CompletionItemKind, Completi
 
 use ropey::Rope;
 
-use xsc_core::parsing::ast::{Type};
+use xsc_core::parsing::ast::{Expr, Type};
 use xsc_core::r#static::info::IdInfo;
 use crate::backend::backend::Backend;
 use crate::fmt::pos_info::{pos_from_span, span_from_pos};
@@ -307,7 +307,14 @@ impl LanguageServer for Backend {
         let label = {
             let params_str = type_sign[..type_sign.len()-1]
                 .iter()
-                .map(|(name, type_)| format!("{} {}", type_, name.0))
+                .map(|info| match &info.default.0 {
+                    Expr::Literal(lit) => {
+                        format!("{} {} = {}", info.type_, info.name.0, lit)
+                    }
+                    _ => {
+                        format!("{} {}", info.type_, info.name.0)
+                    }
+                })
                 .collect::<Vec<_>>()
                 .join(", ");
             format!("{}({})", fn_name.0, params_str)
@@ -316,8 +323,15 @@ impl LanguageServer for Backend {
         let mut param_info = Vec::with_capacity(type_sign.len() - 1);
         let mut offset = fn_name.0.len() + 1;
 
-        for (param_name, param_type) in type_sign[..type_sign.len()-1].iter() {
-            let chunk = format!("{} {}", param_type, param_name.0);
+        for info in type_sign[..type_sign.len()-1].iter() {
+            let chunk = match &info.default.0 {
+                Expr::Literal(lit) => {
+                    format!("{} {} = {}", info.type_, info.name.0, lit)
+                }
+                _ => {
+                    format!("{} {}", info.type_, info.name.0)
+                }
+            };
             let start = offset as u32;
             let end = (offset + chunk.len()) as u32;
             param_info.push(ParameterInformation {

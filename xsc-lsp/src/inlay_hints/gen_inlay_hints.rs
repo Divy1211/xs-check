@@ -27,8 +27,10 @@ fn xs_hints_expr(
             return;
         };
 
-        for ((param_name, _param_type), arg) in type_sign[..type_sign.len()-1].iter().zip(args) {
-            if let (Some((arg_name, _type)), Some(param_name)) = (get_arg_name(arg, env, Some(Type::Void)), get_param_name(param_name)) {
+        for (info, arg) in type_sign[..type_sign.len()-1].iter().zip(args) {
+            if let (Some((arg_name, _type)), Some(param_name)) = (
+                get_arg_name(arg, env, Some(Type::Void)), get_param_name(&info.name.0)
+            ) {
                 // don't inlay low quality names like i, j, v1, v2, etc.
                 if param_name.len() < 3 {
                     continue;
@@ -43,7 +45,7 @@ fn xs_hints_expr(
 
             hints.push(InlayHint {
                 position: range.0,
-                label: InlayHintLabel::String(format!("{}:", param_name.0.clone())),
+                label: InlayHintLabel::String(format!("{}:", info.name.0.clone())),
                 kind: None,
                 text_edits: None,
                 tooltip: Some(InlayHintTooltip::MarkupContent(MarkupContent {
