@@ -1,17 +1,15 @@
-void setWin(int width = -1, int height = -1) {
-
+mutable void foo(int a = 1) {
+    xsChatData("r: " + (a + 10));
 }
 
-void tt() {
-    int Height = 100;
-    int Width = 100;
-    setWin(Height, Width);
+void foo(int a = 2) {
+    xsChatData("r: " + (a + 20));
 }
-
-void test(int x = -1, int y = -1) {}
 
 void main() {
-    int x = -1;
-    int y = -2;
-    test(y, x);
+    foo();
+}
+
+void foo(int a = 3) {
+    xsChatData("r: " + (a + 30));
 }

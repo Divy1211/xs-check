@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use chumsky::container::Container;
 use crate::doxygen::Doc;
-use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type};
+use crate::parsing::ast::{AstNode, RuleOpt, Expr, Identifier, Literal, Type, Param};
 use crate::parsing::span::{Span, Spanned};
 use crate::r#static::info::{
     gen_errs_from_path,
@@ -590,11 +590,8 @@ match stmt {
             ));
         }
 
-        let mut new_type_sign = params
-            .iter()
-            .map(|param| (param.name.0.clone(), param.type_.clone()))
-            .collect::<Vec<_>>();
-        new_type_sign.push(("return".into(), return_type.clone()));
+        let mut new_type_sign = params.clone(); // todo: This should probably be an Rc<>...
+        new_type_sign.push(Param::return_(return_type));
 
         // Nested fns are not allowed. If someone has accidentally defined a nested fn, pretend it
         // exists in the global space, an error was already issued for this above.
@@ -609,7 +606,7 @@ match stmt {
                     &og_src_loc,
                     Some("Only mutable functions may be overridden"),
                 ))
-            } else if new_type_sign != *type_sign {
+            } else if !Type::signs_are_compatible(&new_type_sign, &type_sign, path, type_env) {
                 type_env.add_err(path, XsError::redefined_name(
                     name,
                     name_span,
@@ -618,7 +615,7 @@ match stmt {
                 ))
             } else {
                 type_env.set_global(name, IdInfo::new(
-                    Type::Fn { is_mutable: *is_mutable, type_sign: new_type_sign },
+                    Type::Fn { is_mutable: was_mutable, type_sign: new_type_sign },
                     SrcLoc::from(path, name_span),
                     doc,
                 ))

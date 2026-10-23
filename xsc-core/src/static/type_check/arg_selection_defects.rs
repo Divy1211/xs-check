@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 use std::path::PathBuf;
-use crate::parsing::ast::{Expr, Identifier, Type};
+use crate::parsing::ast::{Expr, Identifier, Param, Type};
 use crate::parsing::span::{Span, Spanned};
 use crate::r#static::info::{IdInfo, TypeEnv, WarningKind, XsError};
 
@@ -151,7 +151,7 @@ pub fn get_arg_name((expr, _span): &Spanned<Expr>, type_env: &TypeEnv, type_over
             name = name.strip_suffix("ID").unwrap_or(name);
             name = name.strip_suffix("id").unwrap_or(name);
 
-            let rtype = type_sign.last().expect("Return type").1.clone();
+            let rtype = type_sign.last().expect("Return type").type_.clone();
             if name.is_empty() || rtype == Type::Void {
                 None
             } else {
@@ -253,7 +253,14 @@ fn bipartite_matching(costs: &[Vec<Option<f32>>]) -> Vec<usize> {
 
 /// Implements the algorithm presented in this paper by Rice et al. 2017,
 /// [Detecting Argument Selection Defects](https://static.googleusercontent.com/media/research.google.com/ru//pubs/archive/46317.pdf)
-pub fn warn_arg_selection_defects(path: &PathBuf, name: &Identifier, name_span: &Span, type_sign: &[(Identifier, Type)], args: &[Spanned<Expr>], type_env: &mut TypeEnv) {
+pub fn warn_arg_selection_defects(
+    path: &PathBuf,
+    name: &Identifier,
+    name_span: &Span,
+    type_sign: &[Param],
+    args: &[Spanned<Expr>],
+    type_env: &mut TypeEnv,
+) {
     let Some(fn_env) = &type_env.current_fnv_env else {
         return;
     };
@@ -263,12 +270,12 @@ pub fn warn_arg_selection_defects(path: &PathBuf, name: &Identifier, name_span: 
     }
     let (params, args) = type_sign.iter().zip(args)
         .filter_map(|(param, arg)| {
-            let param_name = get_param_name(&param.0);
+            let param_name = get_param_name(&param.name.0);
             let arg_name = get_arg_name(arg, type_env, None);
             let (Some(param_name), Some(arg_name)) = (param_name, arg_name) else {
                 return None;
             };
-            Some(((param_name, param.1.clone()), arg_name))
+            Some(((param_name, param.type_.clone()), arg_name))
         }).unzip::<_, _, Vec<_>, Vec<_>>();
 
     let mut costs = vec![vec![None; params.len()]; params.len()];

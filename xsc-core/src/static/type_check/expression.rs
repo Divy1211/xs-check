@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::parsing::ast::{Expr, Literal, Type};
+use crate::parsing::ast::{Expr, Literal, Param, Type};
 use crate::parsing::span::Spanned;
 use crate::r#static::info::{IdInfo, TypeEnv, WarningKind, XsError};
 use crate::r#static::type_check::arg_selection_defects::warn_arg_selection_defects;
@@ -74,7 +74,7 @@ pub fn xs_tc_expr(
         };
         let type_sign = match type_ {
             Type::Fn { type_sign, .. } => type_sign,
-            Type::Rule => vec![("return".into(), Type::Void)], // rules can be called with function syntax!
+            Type::Rule => vec![Param::return_(&Type::Void)], // rules can be called with function syntax!
             _ => {
                 type_env.add_err(path, XsError::not_callable(
                     name,
@@ -87,12 +87,14 @@ pub fn xs_tc_expr(
                 return None;
             },
         };
-        for ((_param_name, param_type), arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
+        for (param_info, arg_expr) in type_sign[..type_sign.len()-1].iter().zip(args) {
             let Some(arg_type) = xs_tc_expr(path, arg_expr, type_env) else {
                 // expr will generate its own error if the type cannot be inferred
                 continue;
             };
-            type_env.add_errs(path, type_cmp(param_type, &arg_type, &arg_expr.1, true, false, doc.is_no_num_promo()));
+            type_env.add_errs(path, type_cmp(
+                &param_info.type_, &arg_type, &arg_expr.1, true, false, doc.is_no_num_promo()
+            ));
         }
         warn_arg_selection_defects(path, name, name_span, &type_sign[..type_sign.len() - 1], args, type_env);
         if args.len() >= type_sign.len() {
@@ -104,7 +106,7 @@ pub fn xs_tc_expr(
             }
         }
 
-        type_sign.last().map(|val| val.1.clone())
+        type_sign.last().map(|val| val.type_.clone())
     }
 
     Expr::Neg(expr) => {

@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use crate::parsing::ast::{Identifier, Type};
+use crate::parsing::ast::{Expr, Identifier, Type};
 use crate::r#static::info::{IdInfo};
 use crate::utils::warnings_from_str;
 
@@ -170,7 +170,7 @@ impl Doc {
                 )
             }
             Type::Fn { is_mutable, type_sign } => {
-                let rtype = &type_sign.last().expect("Function missing return type").1;
+                let rtype = &type_sign.last().expect("Function missing return type").type_;
                 let mutable = if *is_mutable { "mutable " } else { "" };
                 if type_sign.len() == 1 {
                     break 'sign format!("```xs\n{mutable}{rtype} {}()\n```", id.0)
@@ -179,7 +179,16 @@ impl Doc {
                     "```xs\n{mutable}{rtype} {}(\n    {}\n)\n```",
                     id.0,
                     type_sign[..type_sign.len()-1].iter()
-                        .map(|(id, type_)| format!("{type_} {id}"))
+                        .map(|info| {
+                            match &info.default.0 {
+                                Expr::Literal(lit) => {
+                                    format!("{} {} = {}", info.type_, info.name.0, lit)
+                                }
+                                _ => {
+                                    format!("{} {}", info.type_, info.name.0)
+                                }
+                            }
+                        })
                         .collect::<Vec<_>>()
                         .join("\n    ")
                 )
