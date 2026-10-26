@@ -167,11 +167,9 @@ pub fn arith_op(
         (Type::Str, _) if op_name == "add" => { Some(Type::Str) }
         (Type::Int | Type::Float | Type::Bool | Type::Str, Type::Str) if op_name == "add" => { Some(Type::Str) }
 
-        (Type::Vec, Type::Vec) if op_name == "add" => { Some(Type::Vec) }
-        (Type::Vec, Type::Vec) if op_name == "subtract" => { Some(Type::Vec) }
+        (Type::Vec, Type::Vec) if op_name == "add" || op_name == "subtract" => { Some(Type::Vec) }
 
-        (Type::Vec, Type::Float | Type::Int) | (Type::Float | Type::Int, Type::Vec) if op_name == "multiply" => { Some(Type::Vec) }
-        (Type::Vec, Type::Float | Type::Int) if op_name == "divide" => { Some(Type::Vec) }
+        (Type::Vec, Type::Float | Type::Int) if op_name == "multiply" || op_name == "divide" => { Some(Type::Vec) }
 
         (type1, type2) => {
             type_env.add_err(path, XsError::op_mismatch(
