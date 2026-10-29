@@ -77,9 +77,6 @@ fn xs_toks(
         value,
         ..
     } => {
-        if let Some(value) = value {
-            xs_toks_expr(value, toks, info, env);
-        }
         let mut modifiers = TokenModifier::NONE;
         if *is_const {
             modifiers += TokenModifier::READONLY;
@@ -89,9 +86,12 @@ fn xs_toks(
         }
         toks.push(XsToken::from(span, TokenType::VARIABLE, modifiers));
         info.set(name, TokenType::VARIABLE, modifiers);
+
+        if let Some(value) = value {
+            xs_toks_expr(value, toks, info, env);
+        }
     }
     AstNode::VarAssign { name: (name, span), value } => {
-        xs_toks_expr(value, toks, info, env);
         let (type_, modifiers) = match info.get(name) {
             Some((type_, modifiers)) => (*type_, *modifiers),
             None => { match lookup(name, env) {
@@ -100,12 +100,9 @@ fn xs_toks(
             }}
         };
         toks.push(XsToken::from(span, type_, modifiers));
+        xs_toks_expr(value, toks, info, env);
     }
     AstNode::RuleDef { body, rule_opts, .. } => {
-        let old = info.new_local_env();
-        for stmt in body.0.iter() {
-            xs_toks(stmt, toks, info, env);
-        }
         for (opt, _span) in rule_opts {
             match opt {
                 RuleOpt::MinInterval(expr) |
@@ -115,6 +112,11 @@ fn xs_toks(
                 }
                 _ => {}
             }
+        }
+
+        let old = info.new_local_env();
+        for stmt in body.0.iter() {
+            xs_toks(stmt, toks, info, env);
         }
         info.set_local_env(old);
     }
