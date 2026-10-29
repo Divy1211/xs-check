@@ -98,8 +98,13 @@ impl Backend {
                 let mut config = self.config.get().expect("Initialized").write().await;
                 *config = new_config;
             }
-            Err(err) => {
+            Err(err) if self.config.get().is_none() => {
                 self.client.show_message(MessageType::ERROR, format!("XSC: Failed to load config: {}", err)).await;
+                self.config.set(RwLock::new(ExtConfig::default())).expect("Only runs once");
+            }
+            Err(err) => {
+                self.client.show_message(MessageType::ERROR, format!("XSC: Failed to reload config: {}", err)).await;
+                // keep the old config
             }
         }
     }

@@ -10,3 +10,14 @@ pub struct ExtConfig {
     pub include_dirs: Vec<PathBuf>,
     pub flavour: Flavour
 }
+
+impl Default for ExtConfig {
+    fn default() -> Self {
+        Self {
+            ignores: HashSet::new(),
+            extra_prelude_path: None,
+            include_dirs: vec![],
+            flavour: Flavour::AoE2DE,
+        }
+    }
+}
