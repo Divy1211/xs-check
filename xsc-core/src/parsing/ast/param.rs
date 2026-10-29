@@ -18,4 +18,17 @@ impl Param {
             default: (Expr::Identifier("return".into()), Span::new(0, 0)),
         }
     }
+
+    pub fn render(&self) -> String {
+        format!("{} {}", self.type_, self.name.0)
+        // todo: fix the default values in the prelude and then enable this
+        // match &self.default.0 {
+        //     Expr::Literal(lit) => {
+        //         format!("{} {} = {}", self.type_, self.name.0, lit)
+        //     }
+        //     _ => {
+        //         format!("{} {}", self.type_, self.name.0)
+        //     }
+        // }
+    }
 }
