@@ -168,9 +168,7 @@ impl LanguageServer for Backend {
     async fn did_close(&self, params: DidCloseTextDocumentParams) {
         let uri = params.text_document.uri;
         let path = path_from_uri(&uri);
-        if uri.to_file_path().is_err() {
-            self.remove_entry(&path);
-        }
+        self.remove_entry(&path);
     }
 
     async fn goto_definition(&self, params: GotoDefinitionParams) -> tower_lsp::jsonrpc::Result<Option<GotoDefinitionResponse>> {
