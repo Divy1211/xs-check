@@ -3,16 +3,24 @@ use tower_lsp::lsp_types::Position;
 use xsc_core::parsing::span::Span;
 
 pub fn pos_to_char(src: &Rope, pos: &Position) -> usize {
-    let line = src.line(pos.line as usize);
-    src.line_to_char(pos.line as usize) + line.utf16_cu_to_char(pos.character as usize)
+    let line_idx = (pos.line as usize).min(src.len_lines() - 1);
+    let line = src.line(line_idx);
+
+    let char_idx = (pos.character as usize).min(line.len_utf16_cu());
+    src.line_to_char(pos.line as usize) + line.utf16_cu_to_char(char_idx)
 }
 
 pub fn pos_to_byte(src: &Rope, pos: &Position) -> usize {
-    let line = src.line(pos.line as usize);
-    src.line_to_byte(pos.line as usize) + line.char_to_byte(line.utf16_cu_to_char(pos.character as usize))
+    let line_idx = (pos.line as usize).min(src.len_lines() - 1);
+    let line = src.line(line_idx);
+
+    let char_idx = (pos.character as usize).min(line.len_utf16_cu());
+    src.line_to_byte(pos.line as usize) + line.char_to_byte(line.utf16_cu_to_char(char_idx))
 }
 
 pub fn byte_to_pos(src: &Rope, index: usize) -> Position {
+    let index = index.min(src.len_bytes());
+
     let line = src.byte_to_line(index);
     let line_start = src.line_to_byte(line);
     let byte_col = index - line_start;

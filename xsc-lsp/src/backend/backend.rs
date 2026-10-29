@@ -154,9 +154,9 @@ impl Backend {
     }
 
     pub fn get_id(&self, src: &Rope, pos: &Position) -> Identifier {
-        let rope = src.line(pos.line as usize);
+        let rope = src.line((pos.line as usize).min(src.len_lines() - 1));
         let line = rope.to_string();
-        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char(pos.character as usize));
+        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char((pos.character as usize).min(rope.len_utf16_cu())));
 
         let start = line[..char_idx]
             .rfind(|c: char| !c.is_alphanumeric() && c != '_')
@@ -172,9 +172,9 @@ impl Backend {
     }
 
     pub fn get_fn_id(&self, src: &Rope, pos: &Position) -> (Identifier, u32) {
-        let rope = src.line(pos.line as usize);
+        let rope = src.line((pos.line as usize).min(src.len_lines() - 1));
         let line = rope.to_string();
-        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char(pos.character as usize));
+        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char((pos.character as usize).min(rope.len_utf16_cu())));
 
         let mut inside_str = false;
         let mut inside_comment = false;
