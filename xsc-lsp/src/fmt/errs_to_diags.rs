@@ -1,7 +1,7 @@
 use std::collections::{HashMap, HashSet};
 use std::path::PathBuf;
 
-use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, Position, Range, Url};
+use tower_lsp::lsp_types::{Diagnostic, DiagnosticSeverity, NumberOrString, Position, Range, Url};
 
 use xsc_core::r#static::info::{Error, XsError};
 
@@ -133,7 +133,7 @@ pub fn xs_errs_to_diags(
                 }
             };
 
-            let (start, end) = pos_from_span(&src, span);
+            let (start, end) = pos_from_span(src, span);
 
             diags.push(Diagnostic {
                  range: Range {
@@ -141,7 +141,7 @@ pub fn xs_errs_to_diags(
                      end,
                  },
                  severity: Some(severity),
-                 code: None,
+                 code: Some(NumberOrString::String(kind.into())),
                  code_description: None,
                  source: Some("xs-check".to_string()),
                  message: format!("{}: {}", kind, msg),
@@ -200,7 +200,7 @@ pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &SrcCache) -> 
                     let kind = err.kind();
                     let span = err.span();
 
-                    let (start, end) = pos_from_span(&src, span);
+                    let (start, end) = pos_from_span(src, span);
 
                     diags.push(Diagnostic {
                         range: Range {
@@ -208,7 +208,7 @@ pub fn parse_errs_to_diags(uri: &Url, errs: &Vec<Error>, editors: &SrcCache) -> 
                             end,
                         },
                         severity: Some(DiagnosticSeverity::ERROR),
-                        code: None,
+                        code: Some(NumberOrString::String(kind.into())),
                         code_description: None,
                         source: Some("xs-check".to_string()),
                         message: format!("{}: {}", kind, msg),
