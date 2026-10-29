@@ -13,7 +13,6 @@ use xsc_core::r#static::info::{gen_errs_from_path, gen_errs_from_src, AstCache, 
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
 use crate::fmt::errs_to_diags::{parse_errs_to_diags, xs_errs_to_diags};
-use crate::fmt::pos_info::pos_to_byte;
 use crate::utils::path_from_uri;
 
 pub type SrcCache = DashMap<PathBuf, (Url, Rope)>;
@@ -81,7 +80,7 @@ impl Backend {
         diags.append(&mut parse_errs);
         
         let deps = type_env.dependencies.take().expect("New type-env created above");
-        self.dependencies.insert(path.clone(), deps.into_values().into_iter().flatten().collect());
+        self.dependencies.insert(path.clone(), deps.into_values().flatten().collect());
 
         self.env_cache.insert(path, type_env);
         self.client.publish_diagnostics(uri, diags, None).await;
@@ -101,7 +100,6 @@ impl Backend {
             }
             Err(err) => {
                 self.client.show_message(MessageType::ERROR, format!("XSC: Failed to load config: {}", err)).await;
-                return;
             }
         }
     }

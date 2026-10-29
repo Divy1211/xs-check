@@ -2,6 +2,11 @@ use ropey::Rope;
 use tower_lsp::lsp_types::Position;
 use xsc_core::parsing::span::Span;
 
+pub fn pos_to_char(src: &Rope, pos: &Position) -> usize {
+    let line = src.line(pos.line as usize);
+    src.line_to_char(pos.line as usize) + line.utf16_cu_to_char(pos.character as usize)
+}
+
 pub fn pos_to_byte(src: &Rope, pos: &Position) -> usize {
     let line = src.line(pos.line as usize);
     src.line_to_byte(pos.line as usize) + line.char_to_byte(line.utf16_cu_to_char(pos.character as usize))

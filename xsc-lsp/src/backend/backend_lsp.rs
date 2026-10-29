@@ -56,7 +56,7 @@ use ropey::Rope;
 use xsc_core::parsing::ast::{Expr, Type};
 use xsc_core::r#static::info::IdInfo;
 use crate::backend::backend::Backend;
-use crate::fmt::pos_info::{pos_from_span, span_from_pos};
+use crate::fmt::pos_info::{pos_from_span, pos_to_char, span_from_pos};
 use crate::inlay_hints::gen_inlay_hints;
 use crate::semantic_tokens::{get_semantic_token_legend, gen_tokens};
 use crate::utils::{path_from_uri};
@@ -133,10 +133,11 @@ impl LanguageServer for Backend {
                     *src = Rope::from(change.text);
                 }
                 Some(range) => {
-                    let span = span_from_pos(src, &range.start, &range.end);
+                    let start = pos_to_char(src, &range.start);
+                    let end = pos_to_char(src, &range.end);
 
-                    src.remove(span.start..span.end);
-                    src.insert(span.start, &change.text);
+                    src.remove(start..end);
+                    src.insert(start, &change.text);
                 }
             }
         }
