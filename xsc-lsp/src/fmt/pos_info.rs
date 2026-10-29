@@ -7,7 +7,7 @@ pub fn pos_to_char(src: &Rope, pos: &Position) -> usize {
     let line = src.line(line_idx);
 
     let char_idx = (pos.character as usize).min(line.len_utf16_cu());
-    src.line_to_char(pos.line as usize) + line.utf16_cu_to_char(char_idx)
+    src.line_to_char(line_idx) + line.utf16_cu_to_char(char_idx)
 }
 
 pub fn pos_to_byte(src: &Rope, pos: &Position) -> usize {
@@ -15,7 +15,7 @@ pub fn pos_to_byte(src: &Rope, pos: &Position) -> usize {
     let line = src.line(line_idx);
 
     let char_idx = (pos.character as usize).min(line.len_utf16_cu());
-    src.line_to_byte(pos.line as usize) + line.char_to_byte(line.utf16_cu_to_char(char_idx))
+    src.line_to_byte(line_idx) + line.char_to_byte(line.utf16_cu_to_char(char_idx))
 }
 
 pub fn byte_to_pos(src: &Rope, index: usize) -> Position {
