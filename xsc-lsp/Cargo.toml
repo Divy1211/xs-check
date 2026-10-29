@@ -1,6 +1,6 @@
 [package]
 name = "xsc-lsp"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Alian713"]
 edition = "2021"
 description = "An LSP for AoE2:DE's flavour of XS"
