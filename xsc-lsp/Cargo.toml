@@ -19,7 +19,8 @@ env_logger = "0.11.7"
 ropey = { workspace = true }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
-tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-std"]}
+ tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-std"]}
+#tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread", "io-util", "net"]}
 tower-lsp = { workspace = true }
 xsc-core = { path = "../xsc-core", features = ["lsp"] }
 

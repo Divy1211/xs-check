@@ -124,7 +124,9 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri.clone();
 
         let path = path_from_uri(&uri);
-        let mut val = self.editors.get_mut(&path).expect("Cached before did_change");
+        let Some(mut val) = self.editors.get_mut(&path) else {
+            return;
+        };
 
         let (_uri, src) = val.value_mut();
         for change in params.content_changes {
@@ -151,7 +153,9 @@ impl LanguageServer for Backend {
             if !deps.contains(&path) {
                 continue;
             }
-            let info = self.editors.get(child_path).expect("Dependency cached in do_lint");
+            let Some(info) = self.editors.get(child_path) else {
+                return;
+            };
             let (uri, _src) = info.value();
             to_relint.insert(uri.clone());
         }
@@ -174,11 +178,16 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         let path = path_from_uri(&uri);
 
-        let (_url, src) = &*self.editors.get(&path).expect("Cached before def");
+        let ref_ = self.editors.get(&path);
+        let Some((_uri, src)) = ref_.as_deref() else {
+            return Ok(None);
+        };
         let id = self.get_id(src, &pos);
         let span = span_from_pos(src, &pos, &pos);
 
-        let env = &*self.env_cache.get(&path).expect("Cached before def");
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
 
         let info = env.identifiers.get(&id)
             .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
@@ -234,11 +243,16 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         let path = path_from_uri(&uri);
 
-        let (_url, src) = &*self.editors.get(&path).expect("Cached before hover");
+        let ref_ = self.editors.get(&path);
+        let Some((_uri, src)) = ref_.as_deref() else {
+            return Ok(None);
+        };
         let id = self.get_id(src, &pos);
         let span = span_from_pos(src, &pos, &pos);
 
-        let env = &*self.env_cache.get(&path).expect("Cached before hover");
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
 
         let info = env.identifiers.get(&id)
             .or_else(|| env.local_ids(&path, &span).and_then(|ids| ids.get(&id)));
@@ -259,14 +273,24 @@ impl LanguageServer for Backend {
     async fn semantic_tokens_full(&self, params: SemanticTokensParams) -> tower_lsp::jsonrpc::Result<Option<SemanticTokensResult>> {
         let uri = params.text_document.uri;
         let path = path_from_uri(&uri);
-        let (_uri, src) = &*self.editors.get(&path).expect("Cached before semantic_tokens_full");
-        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before semantic_tokens_full");
 
-        let env = &*self.env_cache.get(&path).expect("Cached before semantic_tokens_full");
+        let ref1 = self.editors.get(&path);
+        let Some((_uri, src)) = ref1.as_deref() else {
+            return Ok(None);
+        };
+
+        let ref2 = self.ast_cache.get(&path);
+        let Some((_hash, (ast, _comms))) = ref2.as_deref() else {
+            return Ok(None);
+        };
+
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
 
         Ok(Some(SemanticTokensResult::Tokens(SemanticTokens {
             result_id: None,
-            data: gen_tokens(src, ast, env),
+            data: gen_tokens(src, ast, &env),
         })))
     }
 
@@ -274,12 +298,22 @@ impl LanguageServer for Backend {
         let uri = params.text_document.uri;
         let range = params.range;
         let path = path_from_uri(&uri);
-        let (_uri, src) = &*self.editors.get(&path).expect("Cached before inlay_hint");
-        let (_hash, (ast, _comms)) = &*self.ast_cache.get(&path).expect("Cached before inlay_hint");
 
-        let env = &*self.env_cache.get(&path).expect("Cached before inlay_hint");
+        let ref1 = self.editors.get(&path);
+        let Some((_uri, src)) = ref1.as_deref() else {
+            return Ok(None);
+        };
 
-        Ok(Some(gen_inlay_hints(src, ast, env, range)))
+        let ref1 = self.ast_cache.get(&path);
+        let Some((_hash, (ast, _comms))) = ref1.as_deref() else {
+            return Ok(None);
+        };
+
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
+
+        Ok(Some(gen_inlay_hints(src, ast, &env, range)))
     }
 
     async fn completion(&self, params: CompletionParams) -> tower_lsp::jsonrpc::Result<Option<CompletionResponse>> {
@@ -287,11 +321,16 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position.position;
         let path = path_from_uri(&uri);
 
-        let (_url, src) = &*self.editors.get(&path).expect("Cached before completion");
+        let ref_ = self.editors.get(&path);
+        let Some((_url, src)) = ref_.as_deref() else {
+            return Ok(None);
+        };
         let prefix = self.get_id(src, &pos).0;
         let span = span_from_pos(src, &pos, &pos);
 
-        let env = &*self.env_cache.get(&path).expect("Cached before completion");
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
         
         let ids = env.local_ids(&path, &span)
             .map(|ids| ids.iter())
@@ -342,10 +381,15 @@ impl LanguageServer for Backend {
         let pos = params.text_document_position_params.position;
         let path = path_from_uri(&uri);
 
-        let (_url, src) = &*self.editors.get(&path).expect("Cached before completion");
+        let ref_ = self.editors.get(&path);
+        let Some((_url, src)) = ref_.as_deref() else {
+            return Ok(None);
+        };
         let (fn_name, param_index) = self.get_fn_id(src, &pos);
 
-        let env = &*self.env_cache.get(&path).expect("Cached before completion");
+        let Some(env) = self.env_cache.get(&path) else {
+            return Ok(None);
+        };
 
         let Some(IdInfo { type_: Type::Fn { type_sign, .. }, doc, .. }) = &env.get(&fn_name) else {
             return Ok(None);
