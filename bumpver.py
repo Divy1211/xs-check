@@ -1,17 +1,21 @@
 import toml
 
-di = toml.load("./xsc-cli/Cargo.toml")
+def bumpver(path: str):
+    di = toml.load(f"./{path}/Cargo.toml")
 
-original_version_str = di["package"]["version"]
+    original_version_str = di["package"]["version"]
 
-version = list(map(int, original_version_str.split(".")))
+    version = list(map(int, original_version_str.split(".")))
 
-version[-1] += 1
+    version[-1] += 1
 
-version_str = ".".join(map(str, version))
+    version_str = ".".join(map(str, version))
 
-with open("./xsc-cli/Cargo.toml") as file:
-    src = file.read()
+    with open(f"./{path}/Cargo.toml") as file:
+        src = file.read()
 
-with open("./xsc-cli/Cargo.toml", "w") as file:
-    file.write(src.replace(original_version_str, version_str))
+    with open(f"./{path}/Cargo.toml", "w") as file:
+        file.write(src.replace(original_version_str, version_str))
+
+bumpver("xsc-cli")
+bumpver("xsc-lsp")

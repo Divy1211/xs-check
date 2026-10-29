@@ -13,6 +13,7 @@ use xsc_core::r#static::info::{gen_errs_from_path, gen_errs_from_src, AstCache, 
 use crate::config::config::fetch_config;
 use crate::config::ext_config::ExtConfig;
 use crate::fmt::errs_to_diags::{parse_errs_to_diags, xs_errs_to_diags};
+use crate::fmt::pos_info::pos_to_byte;
 use crate::utils::path_from_uri;
 
 pub type SrcCache = DashMap<PathBuf, (Url, Rope)>;
@@ -150,8 +151,9 @@ impl Backend {
     }
 
     pub fn get_id(&self, src: &Rope, pos: &Position) -> Identifier {
-        let line = src.line(pos.line as usize).to_string();
-        let char_idx = pos.character as usize;
+        let rope = src.line(pos.line as usize);
+        let line = rope.to_string();
+        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char(pos.character as usize));
 
         let start = line[..char_idx]
             .rfind(|c: char| !c.is_alphanumeric() && c != '_')
@@ -167,21 +169,61 @@ impl Backend {
     }
 
     pub fn get_fn_id(&self, src: &Rope, pos: &Position) -> (Identifier, u32) {
-        let line = src.line(pos.line as usize).to_string();
-        let char_idx = pos.character as usize;
+        let rope = src.line(pos.line as usize);
+        let line = rope.to_string();
+        let char_idx = rope.char_to_byte(rope.utf16_cu_to_char(pos.character as usize));
 
-        let mut depth = 0u32;
+        let mut inside_str = false;
+        let mut inside_comment = false;
+
         let mut commas = 0u32;
-        let mut end = char_idx;
-        for c in line[..char_idx].chars().rev() {
-            end -= 1;
-            match c {
-                ')' => depth += 1,
-                '(' if depth > 0 => depth -= 1,
-                '(' if depth == 0 => break,
-                ',' => commas += 1,
-                _ => {},
+        let mut end_stack = Vec::with_capacity(char_idx);
+
+        let mut chars = line[..char_idx].char_indices().peekable();
+
+        while let Some((i, c)) = chars.next() {
+            if inside_str && c == '\\' {
+                chars.next();
             }
+            if c == '"' {
+                inside_str = !inside_str;
+                continue;
+            }
+            if inside_str {
+                continue;
+            }
+
+            if !inside_comment && c == '/' && chars.peek().is_some_and(|(_, next)| *next == '*') {
+                chars.next();
+                inside_comment = true;
+            }
+
+            if inside_comment && c == '*' && chars.peek().is_some_and(|(_, next)| *next == '/') {
+                chars.next();
+                inside_comment = false;
+            }
+            if inside_comment {
+                continue;
+            }
+
+            if c == '(' {
+                end_stack.push((i, commas));
+                commas = 0;
+            }
+            if c == ')' {
+                let (_, prev_commas) = end_stack.pop()
+                    .expect("valid parses must always have matching brackets");
+                commas = prev_commas;
+            }
+            if c == ',' {
+                commas += 1;
+            }
+        }
+
+        let (mut end, _) = end_stack.last().copied().unwrap_or((0, 0));
+        if inside_str {
+            end = 0;
+            commas = 0;
         }
 
         let start = line[..end]

@@ -2,26 +2,32 @@ use ropey::Rope;
 use tower_lsp::lsp_types::Position;
 use xsc_core::parsing::span::Span;
 
-pub fn pos_from_span(src: &Rope, span: &Span) -> (Position, Position) {
-    let start_line = src.char_to_line(span.start);
-    let start_col = span.start - src.line_to_char(start_line);
+pub fn pos_to_byte(src: &Rope, pos: &Position) -> usize {
+    let line = src.line(pos.line as usize);
+    src.line_to_byte(pos.line as usize) + line.char_to_byte(line.utf16_cu_to_char(pos.character as usize))
+}
 
-    let end_line = src.char_to_line(span.end);
-    let end_col = span.end - src.line_to_char(end_line);
+pub fn byte_to_pos(src: &Rope, index: usize) -> Position {
+    let line = src.byte_to_line(index);
+    let line_start = src.line_to_byte(line);
+    let byte_col = index - line_start;
 
-    (Position {
-        line: start_line as u32,
-        character: start_col as u32,
-    },
+    let rope = src.line(line);
+    let utf16_col = rope.slice(..rope.byte_to_char(byte_col)).len_utf16_cu();
+
     Position {
-        line: end_line as u32,
-        character: end_col as u32,
-    })
+        line: line as u32,
+        character: utf16_col as u32,
+    }
+}
+
+pub fn pos_from_span(src: &Rope, span: &Span) -> (Position, Position) {
+    (byte_to_pos(src, span.start), byte_to_pos(src, span.end))
 }
 
 pub fn span_from_pos(src: &Rope, start: &Position, end: &Position) -> Span {
-    let start = src.line_to_char(start.line as usize) + start.character as usize;
-    let end = src.line_to_char(end.line as usize) + end.character as usize;
+    let start = pos_to_byte(src, start);
+    let end = pos_to_byte(src, end);
     
     Span::new(start, end)
 }
